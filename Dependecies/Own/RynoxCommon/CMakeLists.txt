@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
 
-project(RynoxCore LANGUAGES CXX)
+project(RynoxCommon LANGUAGES CXX)
 
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*
@@ -26,11 +26,4 @@ source_group(
 target_include_directories(${PROJECT_NAME}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
-target_link_libraries(${PROJECT_NAME}
-    PUBLIC
-        RynoxCommon
-        RynoxMath
-        RynoxRenderer
 )
