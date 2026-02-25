@@ -186,7 +186,7 @@ namespace Rynox::Core
 			wcx.cbWndExtra = 0;
 			wcx.hInstance = GetModuleHandleW(0);
 			wcx.hIcon = 0;
-			wcx.hCursor = 0;
+			wcx.hCursor = LoadCursorW(nullptr, IDC_ARROW);
 			wcx.hbrBackground = 0;
 			wcx.lpszMenuName = 0;
 			wcx.lpszClassName = WINDOW_CLASS_NAME;

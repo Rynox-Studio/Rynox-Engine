@@ -4,6 +4,8 @@
 
 #include <Common/Assert.h>
 
+#include "Core/Events/WindowEvents.h"
+
 namespace Rynox::Core
 {
 	Application* Application::s_Instance = nullptr;
@@ -37,8 +39,9 @@ namespace Rynox::Core
 		{
 			WindowDesc wndDesc;
 			wndDesc.Title = desc.Name;
+			wndDesc.EventCallback = RNX_BIND_EVENT_FN(RaiseEvent);
 
-			if (!m_Window->Initialize(wndDesc))
+			if (!m_Window || !m_Window->Initialize(wndDesc))
 			{
 				return false;
 			}
@@ -60,6 +63,18 @@ namespace Rynox::Core
 			auto now = std::chrono::steady_clock::now();
 			float dt = std::chrono::duration<float>(now - last).count();
 			last = now;
+			
+			m_Window->PollEvents();
+
+			for (auto& layer : m_LayerStack)
+			{
+				layer->OnUpdate(dt);
+			}
+
+			for (auto& layer : m_LayerStack)
+			{
+				layer->OnRender();
+			}
 		}
 	}
 
@@ -70,6 +85,10 @@ namespace Rynox::Core
 
 	void Application::RaiseEvent(IEvent& e)
 	{
+		EventDispatcher d(e);
+		d.Dispatch<WindowCloseEvent>(RNX_BIND_EVENT_FN(OnWindowClose));
+
+		RNX_LOG_DEBUG(e.ToString());
 		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
 		{
 			if (e.Handled)
@@ -101,5 +120,11 @@ namespace Rynox::Core
 	IWindow& Application::GetWindow()
 	{
 		return *m_Window.get();
+	}
+
+	bool Application::OnWindowClose(IEvent& e)
+	{
+		Stop();
+		return true;
 	}
 }

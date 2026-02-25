@@ -2,8 +2,10 @@
 
 #include <string>
 
-#include "LayerStack.h"
-#include "IWindow.h"
+#include "Core/LayerStack.h"
+#include "Core/IWindow.h"
+
+#include "Events/IEvent.h"
 
 namespace Rynox::Core
 {
@@ -37,6 +39,9 @@ namespace Rynox::Core
 		// Window
 
 		IWindow& GetWindow();
+
+	private:
+		bool OnWindowClose(IEvent& e);
 
 	private:
 		bool m_Initialized = false;

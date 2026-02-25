@@ -11,7 +11,7 @@ namespace Rynox::Core
 	std::unique_ptr<IWindow> IWindow::Create()
 	{
 #ifdef RNX_PLATFORM_WINDOWS
-		return std::unique_ptr<Win32Window>();
+		return std::make_unique<Win32Window>();
 #endif
 	}
 }
