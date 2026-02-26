@@ -4,6 +4,8 @@
 
 #include <Common/Assert.h>
 
+#include <Renderer/OpenGL/OpenGLRenderer.h>
+
 #include "Core/Events/WindowEvents.h"
 
 namespace Rynox::Core
@@ -47,6 +49,16 @@ namespace Rynox::Core
 			}
 		}
 
+		m_Renderer = std::make_unique<Renderer::OpenGL::OpenGLRenderer>();
+		{
+			if (!m_Renderer)
+			{
+				return false;
+			}
+			
+			m_Renderer->Initialize(m_Window->GetNativeHandle(), 0);
+		}
+
 		m_Initialized = true;
 		return true;
 	}
@@ -71,10 +83,13 @@ namespace Rynox::Core
 				layer->OnUpdate(dt);
 			}
 
+			m_Renderer->BeginFrame();
 			for (auto& layer : m_LayerStack)
 			{
 				layer->OnRender();
 			}
+			m_Renderer->RenderFrame(0);
+			m_Renderer->EndFrame();
 		}
 	}
 
@@ -88,7 +103,6 @@ namespace Rynox::Core
 		EventDispatcher d(e);
 		d.Dispatch<WindowCloseEvent>(RNX_BIND_EVENT_FN(OnWindowClose));
 
-		RNX_LOG_DEBUG(e.ToString());
 		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
 		{
 			if (e.Handled)
@@ -120,6 +134,11 @@ namespace Rynox::Core
 	IWindow& Application::GetWindow()
 	{
 		return *m_Window.get();
+	}
+
+	Renderer::IRenderer& Application::GetRenderer()
+	{
+		return *m_Renderer.get();
 	}
 
 	bool Application::OnWindowClose(IEvent& e)

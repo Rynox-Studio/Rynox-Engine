@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <Renderer/IRenderer.h>
+
 #include "Core/LayerStack.h"
 #include "Core/IWindow.h"
 
@@ -40,6 +42,10 @@ namespace Rynox::Core
 
 		IWindow& GetWindow();
 
+		// Renderer
+
+		Renderer::IRenderer& GetRenderer();
+
 	private:
 		bool OnWindowClose(IEvent& e);
 
@@ -49,6 +55,7 @@ namespace Rynox::Core
 
 		LayerStack m_LayerStack;
 		std::unique_ptr<IWindow> m_Window;
+		std::unique_ptr<Renderer::IRenderer> m_Renderer;
 
 		static Application* s_Instance;
 	};

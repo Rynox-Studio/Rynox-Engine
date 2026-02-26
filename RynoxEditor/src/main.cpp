@@ -21,9 +21,6 @@ int main()
 			return EXIT_FAILURE;
 		}
 
-		OpenGLRenderer renderer;
-		renderer.Initialize(app->GetWindow().GetNativeHandle(), nullptr);
-
 		app->Run();
 	}
 	catch (const std::exception& e)

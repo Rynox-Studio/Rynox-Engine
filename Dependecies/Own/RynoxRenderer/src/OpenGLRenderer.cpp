@@ -14,9 +14,12 @@ namespace Rynox::Renderer::OpenGL
 		if (!gladLoadGLLoader((GLADloadproc)m_pContext->GetOpenGLLoader())) {
 			RNX_LOG_ERROR("error init glad");
 		}
+
+		glClearColor(0.1, 0.1, 0.1, 1);
 	}
 	void OpenGLRenderer::BeginFrame()
 	{
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
 	void OpenGLRenderer::RenderFrame(float time)
 	{
