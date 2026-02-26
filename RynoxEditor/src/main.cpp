@@ -3,10 +3,15 @@ using namespace Rynox::Core;
 
 #include <Common/Logger.h>
 
+#include "Renderer/OpenGL/OpenGLRenderer.h"
+
+using namespace Rynox::Renderer;
+using namespace Rynox::Renderer::OpenGL;
+
 int main()
 {
 	Application* app = nullptr;
-	
+
 	try
 	{
 		app = new Application();
@@ -15,6 +20,9 @@ int main()
 		{
 			return EXIT_FAILURE;
 		}
+
+		OpenGLRenderer renderer;
+		renderer.Initialize(app->GetWindow().GetNativeHandle(), nullptr);
 
 		app->Run();
 	}
