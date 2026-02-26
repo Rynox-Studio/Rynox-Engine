@@ -1,0 +1,3 @@
+[submodule "Dependecies/Third-Party/entt"]
+	path = Dependecies/Third-Party/entt
+	url = https://github.com/skypjack/entt.git
