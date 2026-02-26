@@ -9,7 +9,7 @@
 namespace Rynox::Core 
 {
 	static int s_WindowCount = 0;
-	const wchar_t* WINDOW_CLASS_NAME = L"VenomWindow";
+	const wchar_t* WINDOW_CLASS_NAME = L"RynoxWindow";
 
 	Win32Window::Win32Window()
 	{
