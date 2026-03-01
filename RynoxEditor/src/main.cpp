@@ -3,8 +3,6 @@ using namespace Rynox::Core;
 
 #include <Common/Logger.h>
 
-#include <Core/Services/AssetService.h>
-
 int main()
 {
 	Application* app = nullptr;
