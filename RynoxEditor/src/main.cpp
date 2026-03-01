@@ -21,8 +21,16 @@ int main()
 	catch (const std::exception& e)
 	{
 		RNX_LOG_ERROR("Exception: {}", e.what());
+		delete app;
+		return EXIT_FAILURE;
+	}
+	catch (...)
+	{
+		RNX_LOG_ERROR("Unknown exception");
+		delete app;
 		return EXIT_FAILURE;
 	}
 
+	delete app;
 	return EXIT_SUCCESS;
 }
