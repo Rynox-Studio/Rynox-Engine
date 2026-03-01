@@ -3,10 +3,7 @@ using namespace Rynox::Core;
 
 #include <Common/Logger.h>
 
-#include "Renderer/OpenGL/OpenGLRenderer.h"
-
-using namespace Rynox::Renderer;
-using namespace Rynox::Renderer::OpenGL;
+#include <Core/Services/AssetService.h>
 
 int main()
 {
