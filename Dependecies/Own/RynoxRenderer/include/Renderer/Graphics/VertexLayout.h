@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Renderer/BufferElement.h"
+#include "Renderer/Graphics/VertexElement.h"
 #include <vector>
 
-namespace Rynox::Renderer
+namespace Rynox::Graphics
 {
-	struct BufferLayout
+	struct VertexLayout
 	{
 	public:
-		BufferLayout() : stride(0) {}
+		VertexLayout() : stride(0) {}
 
-		BufferLayout(const std::initializer_list<BufferElement>& elements)
+		VertexLayout(const std::initializer_list<VertexElement>& elements)
 			: attributes(elements)
 		{
 			CalculateOffsetsAndStride();
@@ -28,7 +28,7 @@ namespace Rynox::Renderer
 			}
 		}
 	public:
-		std::vector<BufferElement> attributes;
+		std::vector<VertexElement> attributes;
 		uint32_t stride;
 	};
 }

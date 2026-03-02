@@ -32,6 +32,7 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC
         glad
         RynoxCommon
+        RynoxMath
     PRIVATE
         opengl32
 )

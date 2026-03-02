@@ -11,7 +11,7 @@ using namespace Rynox::Renderer::OpenGL;
 int main()
 {
 	Application* app = nullptr;
-
+	
 	try
 	{
 		app = new Application();

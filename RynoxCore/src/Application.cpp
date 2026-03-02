@@ -88,7 +88,7 @@ namespace Rynox::Core
 			{
 				layer->OnRender();
 			}
-			m_Renderer->RenderFrame(0);
+			m_Renderer->RenderFrame(Graphics::FrameContext());
 			m_Renderer->EndFrame();
 		}
 	}
