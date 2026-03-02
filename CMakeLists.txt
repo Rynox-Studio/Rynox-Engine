@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(DEPENDECIES_OWN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependecies/Own)
 set(DEPENDECIES_THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependecies/Third_Party)
 
+# Dependencies
 add_subdirectory(${DEPENDECIES_OWN_DIR}/RynoxCommon)
 add_subdirectory(${DEPENDECIES_OWN_DIR}/RynoxMath)
 add_subdirectory(${DEPENDECIES_OWN_DIR}/RynoxRenderer)

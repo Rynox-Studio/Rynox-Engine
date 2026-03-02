@@ -3,11 +3,6 @@ using namespace Rynox::Core;
 
 #include <Common/Logger.h>
 
-#include "Renderer/OpenGL/OpenGLRenderer.h"
-
-using namespace Rynox::Renderer;
-using namespace Rynox::Renderer::OpenGL;
-
 int main()
 {
 	Application* app = nullptr;
@@ -26,8 +21,16 @@ int main()
 	catch (const std::exception& e)
 	{
 		RNX_LOG_ERROR("Exception: {}", e.what());
+		delete app;
+		return EXIT_FAILURE;
+	}
+	catch (...)
+	{
+		RNX_LOG_ERROR("Unknown exception");
+		delete app;
 		return EXIT_FAILURE;
 	}
 
+	delete app;
 	return EXIT_SUCCESS;
 }
