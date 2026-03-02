@@ -1,9 +1,9 @@
 #pragma once
 
 #include "RenderTags.h"
-#include "Handles.h"
+#include "Core/Handles.h"
 
-namespace Rynox::Renderer
+namespace Rynox::Graphics
 {
     using VertexBufferHandle = Rynox::GPUHandle<VertexBufferTag>;
     using IndexBufferHandle = Rynox::GPUHandle<IndexBufferTag>;

@@ -1,12 +1,10 @@
 #include "Core/Application.h"
 
 #include <chrono>
-
 #include <Common/Assert.h>
 
-#include <Renderer/OpenGL/OpenGLRenderer.h>
-
 #include "Core/Events/WindowEvents.h"
+#include "Core/Modules/OpenGLModule.h"
 
 namespace Rynox::Core
 {
@@ -49,17 +47,36 @@ namespace Rynox::Core
 			}
 		}
 
-		m_Renderer = std::make_unique<Renderer::OpenGL::OpenGLRenderer>();
-		{
-			if (!m_Renderer)
-			{
-				return false;
-			}
-			
-			m_Renderer->Initialize(m_Window->GetNativeHandle(), 0);
-		}
+		if (!InitServices())
+			return false;
+
+		if (!InitModules())
+			return false;
+
+		m_Renderer->Initialize(m_Window->GetNativeHandle(), nullptr);
 
 		m_Initialized = true;
+		return true;
+	}
+
+	bool Application::InitServices()
+	{
+		m_ModuleService = std::make_unique<Service::ModuleService>("modules");
+		m_ModuleService->Initialize();
+		return true;
+	}
+
+	bool Application::InitModules()
+	{
+		Service::ModuleService::ErrorCode code = m_ModuleService->LoadModule(ModuleType::OpenGLRenderer);
+		if (code != Service::ModuleService::ErrorCode::None)
+		{
+			RNX_LOG_ERROR("[Application] Failed load module: OpenGLRenderer");
+			return false;
+		}
+
+		Module::OpenGLModule* openGLModule = static_cast<Module::OpenGLModule*>(m_ModuleService->GetModule(ModuleType::OpenGLRenderer));
+		m_Renderer = openGLModule->GetRenderer();
 		return true;
 	}
 
@@ -136,9 +153,9 @@ namespace Rynox::Core
 		return *m_Window.get();
 	}
 
-	Renderer::IRenderer& Application::GetRenderer()
+	const IRenderer* Application::GetRenderer()
 	{
-		return *m_Renderer.get();
+		return m_Renderer;
 	}
 
 	bool Application::OnWindowClose(IEvent& e)

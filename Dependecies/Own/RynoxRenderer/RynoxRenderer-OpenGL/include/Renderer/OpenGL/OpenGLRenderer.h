@@ -1,17 +1,16 @@
 #pragma once
 
-#include <memory>
-
-#include "Renderer/IRenderer.h"
+#include "Core/Interfaces/IRenderer.h"
 #include "Renderer/OpenGL/IGraphicsContext.h"
 #include "Renderer/OpenGL/OpenGLDevice.h"
 #include "Renderer/OpenGL/ResourceService.h"
 
 namespace Rynox::Renderer::OpenGL
 {
-	class OpenGLRenderer : public IRenderer
+	class RNX_RENDERER_API OpenGLRenderer : public IRenderer
 	{
 	public:
+		OpenGLRenderer();
 		~OpenGLRenderer();
 		bool Initialize(void* nWindow, void* nDisplay) override;
 
@@ -23,9 +22,18 @@ namespace Rynox::Renderer::OpenGL
 		void SetClearColor(float r, float g, float b, float a) override;
 		MeshHandle LoadMesh(const Graphics::MeshData mesh) override;
 	private:
-		std::unique_ptr<IGraphicsContext> m_context;
-		std::unique_ptr<OpenGLDevice> m_device;
-		std::unique_ptr<ResourceService> m_resource;
-		bool m_isInitialized = false;
+		struct Impl;
+		Impl* m_impl;
 	};
 }
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	RNX_RENDERER_API Rynox::IRenderer* CreateRenderer();
+	RNX_RENDERER_API void DestroyRenderer(Rynox::IRenderer* renderer);
+
+#ifdef __cplusplus
+}
+#endif

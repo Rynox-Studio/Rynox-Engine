@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "Renderer/Graphics/ShaderDataType.h"
+#include "Core/Graphics/ShaderDataType.h"
 
 namespace Rynox::Graphics
 {

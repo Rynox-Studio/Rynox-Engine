@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include "Renderer/Graphics/VertexLayout.h"
+#include "Core/Graphics/VertexLayout.h"
+
+using namespace Rynox::Graphics;
 
 namespace Rynox::Renderer::OpenGL
 {

@@ -2,9 +2,11 @@
 
 #include <cstdint>
 #include <vector>
-#include "Renderer/RenderTypes.h"
+#include "Core/Graphics/RenderTypes.h"
 #include "Renderer/OpenGL/OpenGLResource.h"
-#include "Renderer/Graphics/VertexLayout.h"
+#include "Core/Graphics/VertexLayout.h"
+
+using namespace Rynox::Graphics;
 
 namespace Rynox::Renderer::OpenGL
 {

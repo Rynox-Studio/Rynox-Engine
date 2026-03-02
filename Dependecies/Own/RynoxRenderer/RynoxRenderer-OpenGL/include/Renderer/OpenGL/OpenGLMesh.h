@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Renderer/RenderTypes.h"
+#include "Core/Graphics/RenderTypes.h"
+
+using namespace Rynox::Graphics;
 
 namespace Rynox::Renderer::OpenGL
 {

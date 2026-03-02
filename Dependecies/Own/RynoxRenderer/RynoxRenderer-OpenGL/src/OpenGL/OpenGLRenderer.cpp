@@ -4,32 +4,46 @@
 #include <Renderer/Platform/Win32GLContext.h>
 #include <Common/Logger.h>
 
-#include "Renderer/Graphics/MeshData.h"
+#include "Core/Graphics/MeshData.h"
 #include "Renderer/OpenGL/OpenGLMesh.h"
 
 namespace Rynox::Renderer::OpenGL
 {
+    struct OpenGLRenderer::Impl
+    {
+        std::unique_ptr<IGraphicsContext> context;
+        std::unique_ptr<OpenGLDevice> device;
+        std::unique_ptr<ResourceService> resource;
+        bool isInitialized = false;
+    };
+    OpenGLRenderer::OpenGLRenderer() : m_impl(new Impl)
+    {
+    }
+    OpenGLRenderer::~OpenGLRenderer()
+    {
+        delete m_impl;
+    }
 	bool OpenGLRenderer::Initialize(void* nWindow, void* nDisplay)
 	{
-		if (!m_isInitialized)
+		if (!m_impl->isInitialized)
 		{
-			m_context = std::make_unique<Platform::Win32GLContext>((static_cast<HWND>(nWindow)));
-			if (!m_context->Init())
+            m_impl->context = std::make_unique<Platform::Win32GLContext>((static_cast<HWND>(nWindow)));
+			if (!m_impl->context->Init())
 			{
 				RNX_LOG_ERROR("error init context");
 				return false;
 			}
 
-			if (!gladLoadGLLoader((GLADloadproc)m_context->GetOpenGLLoader())) {
+			if (!gladLoadGLLoader((GLADloadproc)m_impl->context->GetOpenGLLoader())) {
 				RNX_LOG_ERROR("error init glad");
 				return false;
 			}
 
-			m_device = std::make_unique<OpenGLDevice>();
-			m_resource = std::make_unique<ResourceService>();
+            m_impl->device = std::make_unique<OpenGLDevice>();
+            m_impl->resource = std::make_unique<ResourceService>();
 
 			SetClearColor(0.1, 0.1, 0.1, 1.0);
-			m_isInitialized = true;
+            m_impl->isInitialized = true;
 		}
 
 		return true;
@@ -90,15 +104,15 @@ namespace Rynox::Renderer::OpenGL
                 FragColor = vec4(0.2, 0.7, 1.0, 1.0);
             })";
 
-            shader = m_device->CreateShader(vertexSrc, fragmentSrc);
+            shader = m_impl->device->CreateShader(vertexSrc, fragmentSrc);
 
             initialized = true;
         }
 
-        const OpenGLMesh& mesh = m_resource->GetMesh(triangleMesh);
+        const OpenGLMesh& mesh = m_impl->resource->GetMesh(triangleMesh);
 
-        m_device->BindShader(shader);
-        m_device->BindVertexArray(mesh.vao);
+        m_impl->device->BindShader(shader);
+        m_impl->device->BindVertexArray(mesh.vao);
 
         glDrawElements(
             GL_TRIANGLES,
@@ -107,12 +121,12 @@ namespace Rynox::Renderer::OpenGL
             nullptr
         );
 
-        m_device->UnBindVertexArray();
-        m_device->UnBindShader();
+        m_impl->device->UnBindVertexArray();
+        m_impl->device->UnBindShader();
     }
 	void OpenGLRenderer::EndFrame()
 	{
-		m_context->SwapBuffers();
+        m_impl->context->SwapBuffers();
 	}
 	void OpenGLRenderer::SetViewport(int x, int y, int width, int height)
 	{
@@ -124,14 +138,21 @@ namespace Rynox::Renderer::OpenGL
 	}
 	MeshHandle OpenGLRenderer::LoadMesh(const Graphics::MeshData mesh)
 	{
-		VertexBufferHandle vbo = m_device->CreateVertexBuffer(mesh.vertices, mesh.vertexSize, mesh.layout);
-		IndexBufferHandle ibo = m_device->CreateIndexBuffer(mesh.indices, mesh.indexCount);
-		VertexArrayHandle vao = m_device->CreateVertexArray(vbo, ibo);
+		VertexBufferHandle vbo = m_impl->device->CreateVertexBuffer(mesh.vertices, mesh.vertexSize, mesh.layout);
+		IndexBufferHandle ibo = m_impl->device->CreateIndexBuffer(mesh.indices, mesh.indexCount);
+		VertexArrayHandle vao = m_impl->device->CreateVertexArray(vbo, ibo);
 
 		OpenGLMesh glMesh(vbo, ibo, vao, mesh.indexCount);
-		return m_resource->AddMesh(glMesh);
+		return m_impl->resource->AddMesh(glMesh);
 	}
-	OpenGLRenderer::~OpenGLRenderer()
-	{
-	}
+}
+
+RNX_RENDERER_API Rynox::IRenderer* CreateRenderer()
+{
+    return new Rynox::Renderer::OpenGL::OpenGLRenderer();
+}
+
+RNX_RENDERER_API void DestroyRenderer(Rynox::IRenderer* renderer)
+{
+    delete renderer;
 }

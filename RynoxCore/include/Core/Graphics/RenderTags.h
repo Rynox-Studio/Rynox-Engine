@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Rynox::Renderer
+namespace Rynox::Graphics
 {
 	struct VertexBufferTag {};
 	struct IndexBufferTag {};

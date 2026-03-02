@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer/Graphics/VertexElement.h"
+#include "Core/Graphics/VertexElement.h"
 #include <vector>
 
 namespace Rynox::Graphics
