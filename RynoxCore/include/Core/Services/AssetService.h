@@ -3,9 +3,10 @@
 #include <cstdint>
 #include <vector>
 #include <atomic>
+#include <limits>
+#include <span>
 
 #include "Core/Interfaces/IService.h"
-#include <Common/SparseSet.h>
 #include <Common/Assert.h>
 
 namespace Rynox::Core
@@ -202,126 +203,261 @@ namespace Rynox::Core
 
 			~AssetStorage() override
 			{
+				if (m_Dense)
+				{
+					Traits<AssetID>::deallocate(m_DenseAlloc, m_Dense, m_DenseCapacity);
+					m_Dense = nullptr;
+					m_DenseCapacity = 0;
+					m_DenseSize = 0;
+				}
+
+				if (m_Sparse)
+				{
+					Traits<size_type>::deallocate(m_SparseAlloc, m_Sparse, m_SparseCapacity);
+					m_Sparse = nullptr;
+					m_SparseCapacity = 0;
+					m_SparseSize = 0;
+				}
+
 				if (m_Storage)
 				{
-					std::destroy_n(m_Storage, m_Size);
-					Traits::deallocate(m_Alloc, m_Storage, m_Capacity);
+					for (size_type i = 0; i < m_StorageSize; i++)
+					{
+						Traits<value_type>::destroy(m_StorageAlloc, m_Storage + i);
+					}
+
+					Traits<size_type>::deallocate(m_StorageAlloc, m_Storage, m_StorageCapacity);
 					m_Storage = nullptr;
-					m_Size = 0;
-					m_Capacity = 0;
+					m_StorageCapacity = 0;
+					m_StorageSize = 0;
 				}
 			}
 
-			void Insert(AssetID id, const T& asset)
+			void Insert(AssetID id, const value_type& asset)
 			{
-				auto index = m_SparseSet.Insert(id);
-				if (index >= m_Capacity)
+				if (id >= m_SparseCapacity)
 				{
-					Grow(index);
+					GrowSparse(id + 1);
 				}
 
-				m_Storage[index] = asset;
-				m_Size++;
+				if (Contains(id))
+				{
+					m_Storage[m_Sparse[id]] = asset;
+				}
+				else
+				{
+					if (m_DenseSize >= m_DenseCapacity)
+					{
+						GrowDense(0);
+					}
+					if (m_StorageSize >= m_StorageCapacity)
+					{
+						GrowStorage(0);
+					}
+
+					m_Dense[m_DenseSize] = id;
+					m_Sparse[id] = m_DenseSize;
+					Traits<value_type>::construct(m_StorageAlloc, m_Storage + m_DenseSize, asset);
+					m_DenseSize++;
+					m_StorageSize++;
+				}
 			}
 
-			void Insert(AssetID id, T&& asset)
+			void Insert(AssetID id, value_type&& asset)
 			{
-				auto index = m_SparseSet.Insert(id);
-				if (index >= m_Capacity)
+				if (id >= m_SparseCapacity)
 				{
-					Grow(index);
+					GrowSparse(id + 1);
 				}
 
-				m_Storage[index] = asset;
-				m_Size++;
+				if (Contains(id))
+				{
+					m_Storage[m_Sparse[id]] = std::move(asset);
+				}
+				else
+				{
+					if (m_DenseSize >= m_DenseCapacity)
+					{
+						GrowDense(0);
+					}
+					if (m_StorageSize >= m_StorageCapacity)
+					{
+						GrowStorage(0);
+					}
+
+					m_Dense[m_DenseSize] = id;
+					m_Sparse[id] = m_DenseSize;
+					Traits<value_type>::construct(m_StorageAlloc, m_Storage + m_DenseSize, asset);
+					m_DenseSize++;
+					m_StorageSize++;
+				}
 			}
 
-			void Remove(AssetID id) override
+			void Remove(AssetID id)
 			{
 				if (Contains(id))
 				{
-					auto index = m_SparseSet.GetIndex(id);
-					auto last_index = m_Size - 1;
-					std::swap(m_Storage[index], m_Storage[last_index]);
-					std::destroy_at(m_Storage[last_index]);
-					m_Size--;
+					size_type di = m_Sparse[id];
+					size_type last = m_DenseSize - 1;
+					if (di != last)
+					{
+						m_Dense[di] = m_Dense[last];
+						m_Storage[di] = std::move(m_Storage[last]);
+						m_Sparse[m_Dense[di]] = di;
+					}
 
-					m_SparseSet.Remove(id);
+					Traits<value_type>::destroy(m_StorageAlloc, m_Storage + last);
+					m_Sparse[id] = NULL_INDEX;
+					m_DenseSize--;
+					m_StorageSize--;
 				}
 			}
 
-			bool Contains(AssetID id) const override
+			bool Contains(AssetID id) const
 			{
-				return m_SparseSet.Contains(id);
+				return (
+					id < m_SparseCapacity &&
+					m_Sparse[id] != NULL_INDEX &&
+					m_Sparse[id] < m_DenseSize &&
+					m_Dense[m_Sparse[id]] == id
+					);
 			}
 
-			T* Get(AssetID id)
+			value_type* Get(AssetID id)
 			{
 				if (Contains(id))
 				{
-					return &m_Storage[m_SparseSet.GetIndex(id)];
+					return &m_Storage[m_Sparse[id]];
 				}
 				return nullptr;
 			}
 
-			const T* Get(AssetID id) const
+			const value_type* Get(AssetID id) const
 			{
 				if (Contains(id))
 				{
-					return &m_Storage[m_SparseSet.GetIndex(id)];
+					return &m_Storage[m_Sparse[id]];
 				}
 				return nullptr;
 			}
 
-			void Clear() override
+			void Clear()
 			{
+				if (m_Dense)
+				{
+					m_DenseSize = 0;
+				}
+
+				if (m_Sparse)
+				{
+					std::fill_n(m_Sparse, m_SparseCapacity, NULL_INDEX);
+				}
+
 				if (m_Storage)
 				{
-					std::destroy_n(m_Storage, m_Size);
-					Traits::deallocate(m_Alloc, m_Storage, m_Capacity);
+					for (size_type i = 0; i < m_StorageSize; i++)
+					{
+						Traits<value_type>::destroy(m_StorageAlloc, m_Storage + i);
+					}
+
+					m_StorageSize = 0;
 				}
-				m_SparseSet.Clear();
 			}
 
-			value_type* begin() { return m_Storage; }
-			const value_type* begin() const { return m_Storage; }
-			const value_type* cbegin() const { return m_Storage; }
+			std::span<AssetID> GetDenseSpan() { return { m_Dense, m_DenseSize }; }
+			std::span<const AssetID> GetDenseSpan() const { return { m_Dense, m_DenseSize }; }
 
-			value_type* end() { return m_Storage + m_Size; }
-			const value_type* end() const { return m_Storage + m_Size; }
-			const value_type* cend() const { return m_Storage + m_Size; }
+			std::span<value_type> GetStorageSpan() { return { m_Storage, m_StorageSize }; }
+			std::span<const value_type> GetStorageSpan() const { return { m_Storage, m_StorageSize }; }
 
 		private:
-			using Alloc = std::allocator<value_type>;
-			using Traits = std::allocator_traits<Alloc>;
+			template<typename T>
+			using Alloc = std::allocator<T>;
 
-			void Reallocate(size_type newCapacity)
+			template<typename T>
+			using Traits = std::allocator_traits<Alloc<T>>;
+
+			static constexpr size_type NULL_INDEX = std::numeric_limits::max();
+
+			void ReallocateDense(size_type newCapacity)
 			{
-				if (m_Capacity >= newCapacity) return;
+				if (newCapacity <= m_DenseCapacity) return;
 
-				value_type* newStorage = Traits::allocate(m_Alloc, newCapacity);
+				AssetID* newDense = Traits<AssetID>::allocate(m_DenseAlloc, newCapacity);
+				if (m_Dense)
+				{
+					std::uninitialized_copy_n(m_Dense, m_DenseSize, newDense);
+					Traits<AssetID>::deallocate(m_DenseAlloc, m_Dense, m_DenseCapacity);
+				}
+
+				m_Dense = newDense;
+				m_DenseCapacity = newCapacity;
+			}
+
+			void ReallocateSparse(size_type newCapacity)
+			{
+				if (newCapacity <= m_SparseCapacity) return;
+
+				size_type* newSparse = Traits<size_type>::allocate(m_SparseAlloc, newCapacity);
+				if (m_Sparse)
+				{
+					std::uninitialized_copy_n(m_Sparse, m_SparseCapacity, newSparse);
+					Traits<size_type>::deallocate(m_SparseAlloc, m_Sparse, m_SparseCapacity);
+				}
+
+				std::fill_n(newSparse + m_SparseCapacity, newCapacity - m_SparseCapacity, NULL_INDEX);
+
+				m_Sparse = newSparse;
+				m_SparseCapacity = newCapacity;
+			}
+
+			void ReallocateStorage(size_type newCapacity)
+			{
+				if (newCapacity <= m_StorageCapacity) return;
+
+				value_type* newStorage = Traits<value_type>::allocate(m_StorageAlloc, newCapacity);
 				if (m_Storage)
 				{
-					std::uninitialized_move_n(m_Storage, m_Size, newStorage);
-					Traits::deallocate(m_Alloc, m_Storage, m_Capacity);
+					std::uninitialized_move_n(m_Storage, m_StorageSize, newStorage);
+					Traits<value_type>::deallocate(m_StorageAlloc, m_Storage, m_StorageCapacity);
 				}
+
 				m_Storage = newStorage;
-				m_Capacity = newCapacity;
+				m_StorageCapacity = newCapacity;
 			}
 
-			void Grow(size_type desired)
+			void GrowDense(size_type desired)
 			{
-				Reallocate(m_Capacity == 0 ? 8 : (m_Capacity * 2 > desired ? m_Capacity * 2 : desired));
+				size_type cap = std::max(8u, std::max(m_DenseCapacity * 2, desired));
+				ReallocateDense(cap);
+			}
+
+			void GrowSparse(size_type desired)
+			{
+				size_type cap = std::max(8u, std::max(m_SparseCapacity * 2, desired));
+				ReallocateSparse(cap);
+			}
+
+			void GrowStorage(size_type desired)
+			{
+				size_type cap = std::max(8u, std::max(m_StorageCapacity * 2, desired));
+				ReallocateStorage(cap);
 			}
 
 		private:
-			Common::SparseSet m_SparseSet;
+			Alloc<AssetID> m_DenseAlloc;
+			AssetID* m_Dense = nullptr;
+			size_type m_DenseCapacity = 0;
+			size_type m_DenseSize = 0;
 
+			Alloc<size_type> m_SparseAlloc;
+			size_type* m_Sparse = nullptr;
+			size_type m_SparseCapacity = 0;
+
+			Alloc<value_type> m_StorageAlloc;
 			value_type* m_Storage = nullptr;
-			size_type m_Size = 0;
-			size_type m_Capacity = 0;
-
-			Alloc m_Alloc;
+			size_type m_StorageCapacity = 0;
+			size_type m_StorageSize = 0;
 		};
 
 		template<typename T>
@@ -340,7 +476,7 @@ namespace Rynox::Core
 			if (HasStorage<T>())
 			{
 				auto index = GetStaticID<T>();
-				std::destroy(m_Storages[index]);
+				std::destroy_at(m_Storages + index);
 				m_Storages[index] = nullptr;
 			}
 		}
@@ -355,9 +491,12 @@ namespace Rynox::Core
 		template<typename T>
 		AssetStorage<T>* GetStorage()
 		{
-			auto index = GetStaticID<T>();
-			RNX_ASSERT(m_Storages[index] != nullptr);
-			return static_cast<AssetStorage<T>*>(m_Storages[index]);
+			if (HasStorage<T>())
+			{
+				auto index = GetStaticID<T>();
+				return static_cast<AssetStorage<T>*>(m_Storages[index]);
+			}
+			return nullptr;
 		}
 
 	private:
