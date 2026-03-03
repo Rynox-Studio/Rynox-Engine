@@ -51,7 +51,6 @@ namespace Rynox::ECS
 				Traits<size_type>::deallocate(m_SparseAlloc, m_Sparse, m_SparseCapacity);
 				m_Sparse = nullptr;
 				m_SparseCapacity = 0;
-				m_SparseSize = 0;
 			}
 
 			if (m_Storage)

@@ -149,7 +149,7 @@ namespace Rynox::ECS
 		static uint32_t GetStaticIndex()
 		{
 			static uint32_t Index = GetNextIndex();
-			return ID;
+			return Index;
 		}
 
 		template<typename T>
