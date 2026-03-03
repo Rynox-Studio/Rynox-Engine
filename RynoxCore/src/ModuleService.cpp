@@ -28,11 +28,10 @@ namespace Rynox::Core::Service {
 			}
 			m_modules[type] = std::move(module);
 			return ErrorCode::None;
-			break;
 		}
 		default:
 			RNX_LOG_ERROR("[ModuleService] Unknown module type");
-			break;
+			return ErrorCode::UnknownModuleType;
 		}
 	}
 	void ModuleService::UnLoadModule(ModuleType type)
