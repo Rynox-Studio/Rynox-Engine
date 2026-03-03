@@ -32,6 +32,8 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC
         RynoxCommon
         RynoxMath
+        RynoxRenderer
+        RynoxECS
 )
 
 target_compile_definitions(${PROJECT_NAME}
