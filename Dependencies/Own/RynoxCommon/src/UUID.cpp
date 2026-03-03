@@ -16,11 +16,6 @@ namespace Rynox::Common
 	{
 	}
 
-	uint64_t UUID::GetUUID() const
-	{
-		return m_UUID;
-	}
-
 	UUID::operator uint64_t() const
 	{
 		return m_UUID;
