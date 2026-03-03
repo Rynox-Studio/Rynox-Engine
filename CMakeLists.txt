@@ -9,7 +9,6 @@ set(DEPENDENCIES_THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Third_
 
 # Dependecies Third_Party
 add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glad)
-add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/entt)
 
 # Dependencies Own
 add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxCommon)
