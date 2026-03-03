@@ -12,8 +12,18 @@ namespace Rynox::ECS
 	class World
 	{
 	public:
-		World();
-		~World();
+		World()
+		{
+		}
+
+		~World()
+		{
+			for (auto& storage : m_Storages)
+			{
+				delete storage;
+				storage = nullptr;
+			}
+		}
 
 		Entity CreateEntity()
 		{
@@ -147,7 +157,7 @@ namespace Rynox::ECS
 		{
 			if (!HasStorage<T>())
 			{
-				m_Storages.emplace(GetStaticIndex<T>());
+				m_Storages.emplace(GetStaticIndex<T>(), new ComponentStorage<T>());
 			}
 		}
 
