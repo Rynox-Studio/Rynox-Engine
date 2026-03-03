@@ -8,9 +8,9 @@ namespace Rynox::Common
 	{
 	public:
 		UUID();
-		explicit UUID(uint64_t uuid);
+		UUID(uint64_t uuid);
+		UUID(const UUID&) = default;
 
-		uint64_t GetUUID() const;
 		operator uint64_t() const;
 
 	private:
