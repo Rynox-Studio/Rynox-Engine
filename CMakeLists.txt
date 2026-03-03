@@ -4,18 +4,18 @@ project(Rynox-Engine LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
-set(DEPENDECIES_OWN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependecies/Own)
-set(DEPENDECIES_THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependecies/Third_Party)
+set(DEPENDENCIES_OWN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Own)
+set(DEPENDENCIES_THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Third_Party)
 
 # Dependecies Third_Party
-add_subdirectory(${DEPENDECIES_THIRD_PARTY_DIR}/glad)
-add_subdirectory(${DEPENDECIES_THIRD_PARTY_DIR}/entt)
+add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glad)
+add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/entt)
 
 # Dependencies Own
-add_subdirectory(${DEPENDECIES_OWN_DIR}/RynoxCommon)
-add_subdirectory(${DEPENDECIES_OWN_DIR}/RynoxMath)
-add_subdirectory(${DEPENDECIES_OWN_DIR}/RynoxRenderer)
-add_subdirectory(${DEPENDECIES_OWN_DIR}/RynoxECS)
+add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxCommon)
+add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxMath)
+add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxRenderer)
+add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxECS)
 
 # Root
 add_subdirectory(RynoxCore)
