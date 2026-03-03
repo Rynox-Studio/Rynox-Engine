@@ -476,13 +476,13 @@ namespace Rynox::Core
 			if (HasStorage<T>())
 			{
 				auto index = GetStaticID<T>();
-				std::destroy_at(m_Storages + index);
+				std::destroy_at(m_Storages.data() + index);
 				m_Storages[index] = nullptr;
 			}
 		}
 
 		template<typename T>
-		bool HasStorage()
+		bool HasStorage() const
 		{
 			auto index = GetStaticID<T>();
 			return (index < m_Storages.size() && m_Storages[index] != nullptr);
@@ -490,6 +490,17 @@ namespace Rynox::Core
 
 		template<typename T>
 		AssetStorage<T>* GetStorage()
+		{
+			if (HasStorage<T>())
+			{
+				auto index = GetStaticID<T>();
+				return static_cast<AssetStorage<T>*>(m_Storages[index]);
+			}
+			return nullptr;
+		}
+
+		template<typename T>
+		const AssetStorage<T>* GetStorage() const
 		{
 			if (HasStorage<T>())
 			{
