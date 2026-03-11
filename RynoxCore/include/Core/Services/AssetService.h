@@ -86,7 +86,7 @@ namespace Rynox::Core
 			{
 				handle.id = m_Free.back();
 				m_Free.pop_back();
-				handle.gen = m_Generations[handle.id]++;
+				handle.gen = m_Generations[handle.id];
 			}
 			else
 			{
@@ -105,7 +105,8 @@ namespace Rynox::Core
 			{
 				AssetStorage<T>* storage = GetStorage<T>();
 				storage->Remove(handle.id);
-				m_Generations[handle.id];
+				m_Generations[handle.id]++;
+				m_Free.push_back(handle.id);
 			}
 		}
 
@@ -461,13 +462,15 @@ namespace Rynox::Core
 		};
 
 		template<typename T>
-		AssetStorage<T> CreateStorage()
+		void CreateStorage()
 		{
-			auto index = GetStaticID<T>();
-			m_Storages.emplace(index);
-			RNX_ASSERT(m_Storages.size() >= index);
-			RNX_ASSERT(m_Storages[index] != nullptr);
-			return m_Storages[index];
+			uint32_t index = GetStaticID<T>();
+
+			if (index >= m_Storages.size())
+				m_Storages.resize(index + 1, nullptr);
+
+			if (!m_Storages[index])
+				m_Storages[index] = new AssetStorage<T>();
 		}
 
 		template<typename T>
