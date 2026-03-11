@@ -8,26 +8,13 @@ namespace Rynox::Common
 	class RefCounted
 	{
 	public:
-		void IncRef() const
-		{
-			m_RefCount.fetch_add(1, std::memory_order_relaxed);
-		}
-
-		void DecRef() const
-		{
-			if (m_RefCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
-			{
-				delete this;
-			}
-		}
-
-		uint32_t GetRefCount() const
-		{
-			return m_RefCount.load();
-		}
-
-	protected:
+		RefCounted() = default;
 		virtual ~RefCounted() = default;
+
+		void IncRef() const { ++m_RefCount; }
+		void DecRef() const { --m_RefCount; }
+
+		[[nodiscard]] uint32_t GetRefCount() const { return m_RefCount.load(); }
 
 	private:
 		mutable std::atomic<uint32_t> m_RefCount{ 0 };
@@ -37,70 +24,124 @@ namespace Rynox::Common
     concept RefCountedType = std::derived_from<T, RefCounted>;
 
     template<RefCountedType T>
-    class Ref
-    {
-    public:
-        Ref() = default;
+	class Ref
+	{
+	public:
+		Ref() = default;
 
-        Ref(T* instance)
-            : m_Instance(instance)
-        {
-            Inc();
-        }
+		Ref(std::nullptr_t n) : m_Instance(nullptr) {}
 
-        Ref(const Ref& other)
-            : m_Instance(other.m_Instance)
-        {
-            Inc();
-        }
+		Ref(T* instance) : m_Instance(instance) { IncRef(); }
 
-        Ref(Ref&& other) noexcept
-            : m_Instance(other.m_Instance)
-        {
-            other.m_Instance = nullptr;
-        }
+		template<typename T2>
+		requires(std::is_base_of_v<T2, T> || std::is_base_of_v<T, T2>)
+		Ref(const Ref<T2>& other)
+		{
+			m_Instance = static_cast<T*>(other.m_Instance);
+			IncRef();
+		}
 
-        ~Ref()
-        {
-            Dec();
-        }
+		template<typename T2>
+		requires(std::is_base_of_v<T2, T> || std::is_base_of_v<T, T2>)
+		Ref(Ref<T2>&& other) noexcept
+		{
+			m_Instance = static_cast<T*>(other.m_Instance);
+			other.m_Instance = nullptr;
+		}
 
-        Ref& operator=(const Ref& other)
-        {
-            if (this == &other)
-                return *this;
+		template<typename... Args>
+		[[nodiscard]] static Ref<T> Create(Args&&... args)
+		{
+			return Ref<T>(new T(std::forward<Args>(args)...));
+		}
 
-            Dec();
-            m_Instance = other.m_Instance;
-            Inc();
-            return *this;
-        }
+		~Ref() { DecRef(); }
 
-        Ref& operator=(Ref&& other) noexcept
-        {
-            if (this == &other)
-                return *this;
+		Ref(const Ref<T>& other) : m_Instance(other.m_Instance) { IncRef(); }
+		Ref(Ref<T>&& other) noexcept : m_Instance(other.m_Instance) { other.m_Instance = nullptr; }
 
-            Dec();
-            m_Instance = other.m_Instance;
-            other.m_Instance = nullptr;
-            return *this;
-        }
+		Ref<T>& operator=(const Ref<T>& other)
+		{
+			if (this != &other)
+			{
+				DecRef();
+				m_Instance = other.m_Instance;
+				IncRef();
+			}
+			return *this;
+		}
 
-    private:
-        void Inc()
-        {
-            if (m_Instance)
-                m_Instance->IncRef();
-        }
+		Ref<T>& operator=(Ref<T>&& other) noexcept
+		{
+			if (this != &other)
+			{
+				DecRef();
+				m_Instance = other.m_Instance;
+				other.m_Instance = nullptr;
+			}
+			return *this;
+		}
 
-        void Dec()
-        {
-            if (m_Instance)
-                m_Instance->DecRef();
-        }
+		template<typename T2>
+		[[nodiscard]] Ref<T2> As() const
+		{
+			return Ref<T2>(dynamic_cast<T2*>(m_Instance));
+		}
 
-    private:
-        T* m_Instance = nullptr;
-    };
+		[[nodiscard]] T* operator->() { return m_Instance; }
+		[[nodiscard]] const T* operator->() const { return m_Instance; }
+
+		[[nodiscard]] T* Get() { return m_Instance; }
+		[[nodiscard]] const T* Get() const { return m_Instance; }
+
+		[[nodiscard]] T& operator*() { return *m_Instance; }
+		[[nodiscard]] const T& operator*() const { return *m_Instance; }
+
+		[[nodiscard]] operator bool() const { return m_Instance != nullptr; }
+
+		[[nodiscard]] bool operator==(const Ref<T>& other) const
+		{
+			return m_Instance == other.m_Instance;
+		}
+
+		[[nodiscard]] bool operator!=(const Ref<T>& other) const
+		{
+			return !(*this == other);
+		}
+		
+		void Reset()
+		{
+			DecRef();
+			m_Instance = nullptr;
+		}
+
+	private:
+		void IncRef() const
+		{
+			if (m_Instance)
+			{
+				m_Instance->IncRef();
+			}
+		}
+
+		void DecRef() const
+		{
+			if (m_Instance)
+			{
+				m_Instance->DecRef();
+
+				if (m_Instance->GetRefCount() == 0)
+				{
+					delete m_Instance;
+					m_Instance = nullptr;
+				}
+			}
+		}
+
+	private:
+		template<typename T2>
+		friend class Ref;
+
+		mutable T* m_Instance = nullptr;
+	};
 }
