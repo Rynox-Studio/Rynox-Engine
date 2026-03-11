@@ -1,193 +1,131 @@
 #pragma once
 
-#include <atomic>
-#include <vector>
-
-#include <Common/Assert.h>
-
-#include "ComponentStorage.h"
+#include <ECS/EntityPool.h>
+#include <ECS/ComponentStorage.h>
+#include <ECS/TypeID.h>
 
 namespace Rynox::ECS
 {
 	class World
 	{
 	public:
-		World()
-		{
-		}
+		using size_type = uint32_t;
 
 		~World()
 		{
-			for (auto& storage : m_Storages)
+			for (auto* storage : m_Storages)
 			{
 				delete storage;
-				storage = nullptr;
 			}
 		}
 
-		Entity CreateEntity()
+		[[nodiscard]] Entity CreateEntity()
 		{
-			Entity e;
-			if (!m_Free.empty())
-			{
-				e.id = m_Free.back();
-				e.gen = m_Generations[e.id];
-				m_Free.pop_back();
-			}
-			else
-			{
-				e.id = m_Generations.size();
-				e.gen = 0;
-				m_Generations.push_back(0);
-			}
-			return e;
+			return m_EntityPool.Create();
 		}
 
-		void DestroyEntity(Entity e)
+		void DestroyEntity(Entity entity)
 		{
-			if (HasEntity(e))
+			for (auto* storage : m_Storages)
 			{
-				m_Free.push_back(e.id);
-				m_Generations[e.id]++;
-
-				for (auto& storage : m_Storages)
+				if (storage)
 				{
-					storage->Remove(e.id);
+					storage->Remove(entity.id);
 				}
 			}
+			m_EntityPool.Destroy(entity);
 		}
 
-		bool HasEntity(Entity e) const
+		[[nodiscard]] bool IsAlive(Entity entity) const
 		{
-			return (
-				e.id < m_Generations.size() &&
-				e.gen == m_Generations[e.id]
-				);
+			return m_EntityPool.IsAlive(entity);
 		}
 
-		template<typename T>
-		T& SetComponent(Entity e, const T& component)
+		template<typename T, typename... Args>
+		T* Emplace(Entity entity, Args&&... args)
 		{
-			RNX_ASSERT(HasEntity(e), "Invalid entity");
-			if (!HasStorage<T>())
+			if (!IsAlive(entity))
 			{
-				CreateStorage<T>();
+				return nullptr;
 			}
-			ComponentStorage<T>* storage = GetStorage<T>();
-			storage->Insert(e.id, component);
-			return *storage->Get(e.id);
+
+			CreateStorage<T>();
+			return GetStorage<T>().Emplace(entity.id, std::forward<Args>(args)...);
 		}
 
 		template<typename T>
-		T& SetComponent(Entity e, T&& component)
+		void Remove(Entity entity)
 		{
-			RNX_ASSERT(HasEntity(e), "Invalid entity");
-			if (!HasStorage<T>())
+			if (IsAlive(entity) && HasStorage<T>())
 			{
-				CreateStorage<T>();
-			}
-			ComponentStorage<T>* storage = GetStorage<T>();
-			storage->Insert(e.id, std::move(component));
-			return *storage->Get(e.id);
-		}
-
-		template<typename T>
-		void RemoveComponent(Entity e)
-		{
-			RNX_ASSERT(HasEntity(e), "Invalid entity");
-			ComponentStorage<T>* storage = GetStorage<T>();
-			if (storage)
-			{
-				storage->Remove(e.id);
+				GetStorage<T>().Remove(entity.id);
 			}
 		}
 
 		template<typename T>
-		bool HasComponent(Entity e)
+		[[nodiscard]] T* Get(Entity entity)
 		{
-			RNX_ASSERT(HasEntity(e), "Invalid entity");
-			ComponentStorage<T>* storage = GetStorage<T>();
-			if (storage)
+			if (!IsAlive(entity) || !HasStorage<T>())
 			{
-				return storage->Contains(e.id);
+				return nullptr;
 			}
-			return false;
+			return GetStorage<T>().Get(entity.id);
 		}
 
 		template<typename T>
-		T* GetComponent(Entity e)
+		[[nodiscard]] const T* Get(Entity entity) const
 		{
-			RNX_ASSERT(HasEntity(e), "Invalid entity");
-			ComponentStorage<T>* storage = GetStorage<T>();
-			if (storage)
+			if (!IsAlive(entity) || !HasStorage<T>())
 			{
-				return storage->Get(e.id);
+				return nullptr;
 			}
-			return nullptr;
+			return GetStorage<T>().Get(entity.id);
 		}
 
 		template<typename T>
-		const T* GetComponent(Entity e)
+		[[nodiscard]] bool Contains(Entity entity) const
 		{
-			RNX_ASSERT(HasEntity(e), "Invalid entity");
-			ComponentStorage<T>* storage = GetStorage<T>();
-			if (storage)
+			if (!IsAlive(entity) || !HasStorage<T>())
 			{
-				return storage->Get(e.id);
+				return false;
 			}
-			return nullptr;
+			return GetStorage<T>()->Contains(entity.id);
 		}
 
 	private:
-		static uint32_t GetNextIndex()
-		{
-			static std::atomic<uint32_t> Counter = 0;
-			return Counter++;
-		}
-
-		template<typename T>
-		static uint32_t GetStaticIndex()
-		{
-			static uint32_t Index = GetNextIndex();
-			return Index;
-		}
-
 		template<typename T>
 		void CreateStorage()
 		{
-			if (!HasStorage<T>())
+			size_type index = TypeID::Get<T>();
+			if (index >= m_Storages.size())
 			{
-				m_Storages.emplace(GetStaticIndex<T>(), new ComponentStorage<T>());
+				m_Storages.resize(index + 1, nullptr);
+			}
+			if (m_Storages[index] == nullptr)
+			{
+				m_Storages[index] = new ComponentStorage<T>();
+				RNX_ASSERT(m_Storages[index], "Failed to allocate memory");
 			}
 		}
 
 		template<typename T>
 		void DestroyStorage()
 		{
-			if (HasStorage<T>())
+			size_type index = TypeID::Get<T>();
+			if (index < m_Storages.size() && m_Storages[index])
 			{
-				uint32_t index = GetStaticIndex<T>();
-				std::destroy_at(&m_Storages.data() + index);
+				delete m_Storages[index];
 				m_Storages[index] = nullptr;
 			}
 		}
 
 		template<typename T>
-		bool HasStorage() const
-		{
-			uint32_t index = GetStaticIndex<T>();
-			return (
-				index < m_Storages.size() &&
-				m_Storages[index] != nullptr
-				);
-		}
-
-		template<typename T>
 		ComponentStorage<T>* GetStorage()
 		{
-			if (HasStorage<T>())
+			size_type index = TypeID::Get<T>();
+			if (index < m_Storages.size() && m_Storages[index])
 			{
-				return &m_Storages[GetStaticIndex<T>()];
+				return static_cast<ComponentStorage<T>*>(m_Storages[index]);
 			}
 			return nullptr;
 		}
@@ -195,17 +133,26 @@ namespace Rynox::ECS
 		template<typename T>
 		const ComponentStorage<T>* GetStorage() const
 		{
-			if (HasStorage<T>())
+			size_type index = TypeID::Get<T>();
+			if (index < m_Storages.size() && m_Storages[index])
 			{
-				return &m_Storages[GetStaticIndex<T>()];
+				return static_cast<ComponentStorage<T>*>(m_Storages[index]);
 			}
 			return nullptr;
 		}
 
-	private:
-		std::vector<IComponentStorage*> m_Storages;
+		template<typename T>
+		bool HasStorage() const
+		{
+			size_type index = TypeID::Get<T>();
+			return (
+				index < m_Storages.size() &&
+				m_Storages[index] != nullptr
+				);
+		}
 
-		std::vector<EntityID> m_Free;
-		std::vector<EntityGen> m_Generations;
+	private:
+		EntityPool m_EntityPool;
+		std::vector<IComponentStorage*> m_Storages;
 	};
 }
