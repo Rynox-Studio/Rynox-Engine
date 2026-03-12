@@ -15,8 +15,6 @@ namespace Rynox::ECS
 
         bool operator==(const Entity& other) const { return id == other.id && gen == other.gen; }
         bool operator!=(const Entity& other) const { return !(*this == other); }
-
-        bool IsValid() const { return id != NULL_ENTITY.id; }
     };
 
     inline constexpr Entity NULL_ENTITY = { std::numeric_limits<EntityID>::max(), 0 };

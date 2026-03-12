@@ -12,7 +12,7 @@ namespace Rynox::ECS
 		template<typename T>
 		static size_type Get()
 		{
-			static size_type index =
+			static size_type index = s_Counter++;
 			return index;
 		}
 	private:
