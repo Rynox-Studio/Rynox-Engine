@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Core/Graphics/FrameContext.h"
-#include "Core/Graphics/MeshData.h"
 #include "Core/Graphics/RenderTypes.h"
+#include "Core/Graphics/FrameContext.h"
+#include "Core/Graphics/GraphicsData.h"
 
 namespace Rynox
 {
@@ -18,7 +18,9 @@ namespace Rynox
 
 		virtual void SetViewport(int x, int y, int width, int height) = 0;
 		virtual void SetClearColor(float r, float g, float b, float a) = 0;
-		virtual Graphics::MeshHandle LoadMesh(const Graphics::MeshData mesh) = 0;
+
+		virtual Graphics::MeshHandle QueueMesh(const Graphics::MeshData& mesh) = 0;
+		virtual Graphics::ShaderHandle QueueShader(const Graphics::ShaderData& shader) = 0;
 	};
 
 	using CreateRendererFunc = IRenderer * (*)();

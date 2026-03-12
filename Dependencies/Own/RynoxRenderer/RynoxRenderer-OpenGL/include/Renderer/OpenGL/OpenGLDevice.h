@@ -1,9 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
 #include "Core/Graphics/RenderTypes.h"
-#include "Renderer/OpenGL/OpenGLResource.h"
+#include "Renderer/OpenGL/OpenGLResources.h"
 #include "Core/Graphics/VertexLayout.h"
 
 using namespace Rynox::Graphics;
@@ -13,24 +12,19 @@ namespace Rynox::Renderer::OpenGL
 	class OpenGLDevice
 	{
 	public:
-		VertexBufferHandle CreateVertexBuffer(const void* data, uint32_t size, Graphics::VertexLayout& layout);
-		IndexBufferHandle CreateIndexBuffer(const uint32_t* data, uint32_t count);
-		VertexArrayHandle CreateVertexArray(VertexBufferHandle vertexHandle, IndexBufferHandle indexHandle);
-		ShaderHandle CreateShader(const char* vertexSrc, const char* fragmentSrc);
+		static OpenGLVertexBuffer CreateVertexBuffer(const void* data, uint32_t size, Graphics::VertexLayout& layout);
+		static OpenGLIndexBuffer CreateIndexBuffer(const uint32_t* data, uint32_t count);
+		static OpenGLVertexArray CreateVertexArray(const OpenGLVertexBuffer& vertexBuffer, const OpenGLIndexBuffer& indexBuffer);
+		static OpenGLShader CreateShader(const char* vertexSrc, const char* fragmentSrc);
 
-		void BindVertexBuffer(VertexBufferHandle handle);
-		void BindIndexBuffer(IndexBufferHandle handle);
-		void BindVertexArray(VertexArrayHandle handle);
-		void BindShader(ShaderHandle handle);
+		static void BindVertexBuffer(const OpenGLVertexBuffer& buffer);
+		static void BindIndexBuffer(const OpenGLIndexBuffer& buffer);
+		static void BindVertexArray(const OpenGLVertexArray& array);
+		static void BindShader(const OpenGLShader& shader);
 
-		void UnBindVertexBuffer();
-		void UnBindIndexBuffer();
-		void UnBindVertexArray();
-		void UnBindShader();
-	private:
-		std::vector<OpenGLVertexBuffer> m_VertexBuffers;
-		std::vector<OpenGLIndexBuffer>  m_IndexBuffers;
-		std::vector<OpenGLVertexArray>  m_VertexArrays;
-		std::vector<OpenGLShader> m_shaders;
+		static void UnBindVertexBuffer();
+		static void UnBindIndexBuffer();
+		static void UnBindVertexArray();
+		static void UnBindShader();
 	};
 }

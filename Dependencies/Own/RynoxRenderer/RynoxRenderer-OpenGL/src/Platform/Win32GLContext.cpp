@@ -261,6 +261,8 @@ namespace Rynox::Renderer::Platform
 
 			return false;
 		}
+
+		return true;
 	}
 
 	HGLRC Win32GLContext::CreateModernContext()

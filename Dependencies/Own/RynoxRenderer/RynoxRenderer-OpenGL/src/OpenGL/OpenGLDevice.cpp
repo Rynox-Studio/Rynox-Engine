@@ -23,7 +23,7 @@ namespace Rynox::Renderer::OpenGL
 		}
 		return 0;
 	}
-	VertexBufferHandle OpenGLDevice::CreateVertexBuffer(const void* data, uint32_t size, Graphics::VertexLayout& layout)
+	OpenGLVertexBuffer OpenGLDevice::CreateVertexBuffer(const void* data, uint32_t size, Graphics::VertexLayout& layout)
 	{
 		OpenGL::OpenGLVertexBuffer buffer;
 		buffer.size = size;
@@ -32,11 +32,10 @@ namespace Rynox::Renderer::OpenGL
 		glBindBuffer(GL_ARRAY_BUFFER, buffer.id);
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		m_VertexBuffers.push_back(buffer);
 
-		return VertexBufferHandle(m_VertexBuffers.size() - 1);
+		return buffer;
 	}
-	IndexBufferHandle OpenGLDevice::CreateIndexBuffer(const uint32_t* data, uint32_t count)
+	OpenGLIndexBuffer OpenGLDevice::CreateIndexBuffer(const uint32_t* data, uint32_t count)
 	{
 		OpenGL::OpenGLIndexBuffer buffer;
 		buffer.count = count;
@@ -45,19 +44,18 @@ namespace Rynox::Renderer::OpenGL
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), data, GL_STATIC_DRAW);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		m_IndexBuffers.push_back(buffer);
-		return IndexBufferHandle(m_IndexBuffers.size() - 1);
+		return buffer;
 	}
-	VertexArrayHandle OpenGLDevice::CreateVertexArray(VertexBufferHandle vertexHandle, IndexBufferHandle indexHandle)
+	OpenGLVertexArray OpenGLDevice::CreateVertexArray(const OpenGLVertexBuffer& vertexBuffer, const OpenGLIndexBuffer& indexBuffer)
 	{
-		OpenGL::OpenGLVertexArray buffer;
-		glGenVertexArrays(1, &buffer.id);
-		glBindVertexArray(buffer.id);
+		OpenGL::OpenGLVertexArray array;
+		glGenVertexArrays(1, &array.id);
+		glBindVertexArray(array.id);
 
-		glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffers[vertexHandle.index].id);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffers[indexHandle.index].id);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer.id);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer.id);
 
-		const auto& layout = m_VertexBuffers[vertexHandle.index].layout;
+		const auto& layout = vertexBuffer.layout;
 		for (int i = 0; i < layout.attributes.size(); i++)
 		{
 			const auto& attrib = layout.attributes[i];
@@ -68,17 +66,16 @@ namespace Rynox::Renderer::OpenGL
 				ShaderDataTypeToOpenGLBaseType(attrib.type),
 				attrib.normalized ? GL_TRUE : GL_FALSE,
 				layout.stride,
-				(const void*)attrib.offset
+				reinterpret_cast<void*>(static_cast<uintptr_t>(attrib.offset))
 			);
 		}
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		m_VertexArrays.push_back(buffer);
-		return VertexArrayHandle(m_VertexArrays.size() - 1);
+		return array;
 	}
-	ShaderHandle OpenGLDevice::CreateShader(const char* vertexSrc, const char* fragmentSrc)
+	OpenGLShader OpenGLDevice::CreateShader(const char* vertexSrc, const char* fragmentSrc)
 	{
 		auto compileShader = [](GLenum type, const char* src) -> GLuint
 		{
@@ -104,13 +101,13 @@ namespace Rynox::Renderer::OpenGL
 		};
 
 		GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexSrc);
-		if (!vertexShader) return ShaderHandle();
+		if (!vertexShader) return OpenGLShader{};
 
 		GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentSrc);
 		if (!fragmentShader)
 		{
 			glDeleteShader(vertexShader);
-			return ShaderHandle();
+			return OpenGLShader{};
 		}
 
 		GLuint program = glCreateProgram();
@@ -130,7 +127,7 @@ namespace Rynox::Renderer::OpenGL
 			glDeleteProgram(program);
 			glDeleteShader(vertexShader);
 			glDeleteShader(fragmentShader);
-			return ShaderHandle();
+			return OpenGLShader{};
 		}
 
 		glDetachShader(program, vertexShader);
@@ -139,24 +136,24 @@ namespace Rynox::Renderer::OpenGL
 		glDeleteShader(fragmentShader);
 
 		OpenGLShader shader{ program };
-		m_shaders.push_back(shader);
-		return ShaderHandle(m_shaders.size() - 1);
+
+		return shader;
 	}
-	void OpenGLDevice::BindVertexBuffer(VertexBufferHandle handle)
+	void OpenGLDevice::BindVertexBuffer(const OpenGLVertexBuffer& buffer)
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffers[handle.index].id);
+		glBindBuffer(GL_ARRAY_BUFFER, buffer.id);
 	}
-	void OpenGLDevice::BindIndexBuffer(IndexBufferHandle handle)
+	void OpenGLDevice::BindIndexBuffer(const OpenGLIndexBuffer& buffer)
 	{
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffers[handle.index].id);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.id);
 	}
-	void OpenGLDevice::BindVertexArray(VertexArrayHandle handle)
+	void OpenGLDevice::BindVertexArray(const OpenGLVertexArray& array)
 	{
-		glBindVertexArray(m_VertexArrays[handle.index].id);
+		glBindVertexArray(array.id);
 	}
-	void OpenGLDevice::BindShader(ShaderHandle handle)
+	void OpenGLDevice::BindShader(const OpenGLShader& shader)
 	{
-		glUseProgram(m_shaders[handle.index].id);
+		glUseProgram(shader.id);
 	}
 	void OpenGLDevice::UnBindVertexBuffer()
 	{

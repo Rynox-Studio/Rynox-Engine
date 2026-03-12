@@ -4,16 +4,12 @@
 #include <Renderer/Platform/Win32GLContext.h>
 #include <Common/Logger.h>
 
-#include "Core/Graphics/MeshData.h"
-#include "Renderer/OpenGL/OpenGLMesh.h"
-
 namespace Rynox::Renderer::OpenGL
 {
     struct OpenGLRenderer::Impl
     {
         std::unique_ptr<IGraphicsContext> context;
-        std::unique_ptr<OpenGLDevice> device;
-        std::unique_ptr<ResourceService> resource;
+        std::unique_ptr<OpenGLResourceService> resource;
         bool isInitialized = false;
     };
     OpenGLRenderer::OpenGLRenderer() : m_impl(new Impl)
@@ -39,8 +35,7 @@ namespace Rynox::Renderer::OpenGL
 				return false;
 			}
 
-            m_impl->device = std::make_unique<OpenGLDevice>();
-            m_impl->resource = std::make_unique<ResourceService>();
+            m_impl->resource = std::make_unique<OpenGLResourceService>();
 
 			SetClearColor(0.1, 0.1, 0.1, 1.0);
             m_impl->isInitialized = true;
@@ -51,78 +46,11 @@ namespace Rynox::Renderer::OpenGL
 	void OpenGLRenderer::BeginFrame()
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		m_impl->resource->ProcessQueues();
 	}
     void OpenGLRenderer::RenderFrame(const Graphics::FrameContext& ctx)
     {
-        static bool initialized = false;
-        static MeshHandle triangleMesh;
-        static ShaderHandle shader;
 
-        if (!initialized)
-        {
-            struct Vertex
-            {
-                float position[3];
-            };
-
-            static Vertex vertices[] =
-            {
-                {{ 0.0f,  0.5f, 0.0f }},
-                {{-0.5f, -0.5f, 0.0f }},
-                {{ 0.5f, -0.5f, 0.0f }}
-            };
-
-            static uint32_t indices[] =
-            {
-                0, 1, 2
-            };
-
-            static Graphics::VertexLayout layout =
-            {
-                {
-                    { Graphics::ShaderDataType::Float3, "aPos" }
-                }
-            };
-
-            Graphics::MeshData mesh{ vertices, sizeof(vertices), indices, 3, layout };
-
-            triangleMesh = LoadMesh(mesh);
-
-            const char* vertexSrc = R"(#version 330 core
-            layout(location = 0) in vec3 aPos;
-
-            void main()
-            {
-                gl_Position = vec4(aPos, 1.0);
-            })";
-
-            const char* fragmentSrc = R"(#version 330 core
-            out vec4 FragColor;
-
-            void main()
-            {
-                FragColor = vec4(0.2, 0.7, 1.0, 1.0);
-            })";
-
-            shader = m_impl->device->CreateShader(vertexSrc, fragmentSrc);
-
-            initialized = true;
-        }
-
-        const OpenGLMesh& mesh = m_impl->resource->GetMesh(triangleMesh);
-
-        m_impl->device->BindShader(shader);
-        m_impl->device->BindVertexArray(mesh.vao);
-
-        glDrawElements(
-            GL_TRIANGLES,
-            mesh.indexCount,
-            GL_UNSIGNED_INT,
-            nullptr
-        );
-
-        m_impl->device->UnBindVertexArray();
-        m_impl->device->UnBindShader();
     }
 	void OpenGLRenderer::EndFrame()
 	{
@@ -136,14 +64,13 @@ namespace Rynox::Renderer::OpenGL
 	{
 		glClearColor(r, g, b, a);
 	}
-	MeshHandle OpenGLRenderer::LoadMesh(const Graphics::MeshData mesh)
+	Graphics::MeshHandle OpenGLRenderer::QueueMesh(const Graphics::MeshData& mesh)
 	{
-		VertexBufferHandle vbo = m_impl->device->CreateVertexBuffer(mesh.vertices, mesh.vertexSize, mesh.layout);
-		IndexBufferHandle ibo = m_impl->device->CreateIndexBuffer(mesh.indices, mesh.indexCount);
-		VertexArrayHandle vao = m_impl->device->CreateVertexArray(vbo, ibo);
-
-		OpenGLMesh glMesh(vbo, ibo, vao, mesh.indexCount);
-		return m_impl->resource->AddMesh(glMesh);
+		return m_impl->resource->QueueMesh(mesh);
+	}
+	Graphics::ShaderHandle OpenGLRenderer::QueueShader(const Graphics::ShaderData& shader)
+	{
+		return m_impl->resource->QueueShader(shader);
 	}
 }
 

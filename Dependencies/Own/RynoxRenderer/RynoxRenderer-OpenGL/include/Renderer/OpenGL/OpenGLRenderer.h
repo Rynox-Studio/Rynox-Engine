@@ -2,8 +2,7 @@
 
 #include "Core/Interfaces/IRenderer.h"
 #include "Renderer/OpenGL/IGraphicsContext.h"
-#include "Renderer/OpenGL/OpenGLDevice.h"
-#include "Renderer/OpenGL/ResourceService.h"
+#include "Renderer/OpenGL/OpenGLResourceService.h"
 
 namespace Rynox::Renderer::OpenGL
 {
@@ -20,7 +19,9 @@ namespace Rynox::Renderer::OpenGL
 
 		void SetViewport(int x, int y, int width, int height) override;
 		void SetClearColor(float r, float g, float b, float a) override;
-		MeshHandle LoadMesh(const Graphics::MeshData mesh) override;
+
+		Graphics::MeshHandle QueueMesh(const Graphics::MeshData& mesh);
+		Graphics::ShaderHandle QueueShader(const Graphics::ShaderData& shader);
 	private:
 		struct Impl;
 		Impl* m_impl;
