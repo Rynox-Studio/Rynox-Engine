@@ -1,3 +1,6 @@
 [submodule "Dependecies/Third_Party/entt"]
 	path = Dependecies/Third_Party/entt
 	url = https://github.com/skypjack/entt.git
+[submodule "Dependencies/Third_Party/assimp"]
+	path = Dependencies/Third_Party/assimp
+	url = https://github.com/assimp/assimp.git

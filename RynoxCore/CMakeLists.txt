@@ -33,6 +33,8 @@ target_link_libraries(${PROJECT_NAME}
         RynoxCommon
         RynoxMath
         RynoxECS
+    PRIVATE
+        assimp
 )
 
 target_compile_definitions(${PROJECT_NAME}
