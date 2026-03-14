@@ -31,11 +31,12 @@ set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)  # glTF
 add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/assimp EXCLUDE_FROM_ALL)
 add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glm EXCLUDE_FROM_ALL)
 
+add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/Flies)
+
 # Dependencies Own
 add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxCommon)
 add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxMath)
 add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxRenderer)
-add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxECS)
 
 # Root
 add_subdirectory(RynoxCore)

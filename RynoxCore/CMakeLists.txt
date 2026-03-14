@@ -32,7 +32,7 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC
         RynoxCommon
         RynoxMath
-        RynoxECS
+        Flies
         glm
     PRIVATE
         assimp
