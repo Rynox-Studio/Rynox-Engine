@@ -11,9 +11,10 @@ if(MSVC)
   add_compile_options(/MP)
 endif()
 
-# Dependecies Third_Party
-add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glad EXCLUDE_FROM_ALL)
+# Dependencies Third_Party
+add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glad)
 
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_NO_EXPORT ON CACHE BOOL "" FORCE)
@@ -28,6 +29,7 @@ set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)   # OBJ
 set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)  # glTF
 
 add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/assimp EXCLUDE_FROM_ALL)
+add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glm EXCLUDE_FROM_ALL)
 
 # Dependencies Own
 add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxCommon)

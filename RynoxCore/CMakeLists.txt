@@ -33,6 +33,7 @@ target_link_libraries(${PROJECT_NAME}
         RynoxCommon
         RynoxMath
         RynoxECS
+        glm
     PRIVATE
         assimp
 )
