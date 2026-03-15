@@ -7,6 +7,5 @@ namespace Rynox::Graphics
 	struct RenderItem
 	{
 		Graphics::MeshHandle mesh;
-		Graphics::ShaderHandle shader;
 	};
 }

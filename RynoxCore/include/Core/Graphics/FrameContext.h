@@ -8,8 +8,8 @@ namespace Rynox::Graphics
 {
 	struct FrameContext
 	{
-		CameraData camera;
+		CameraData camera{};
 		std::vector<RenderCommand> commands;
-		float time;
+		float time = 0.0f;
 	};
 }

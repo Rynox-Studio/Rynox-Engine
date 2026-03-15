@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Common/Macros.h>
+
 #include "Core/Interfaces/IRenderer.h"
 #include "Renderer/OpenGL/IGraphicsContext.h"
 #include "Renderer/OpenGL/OpenGLResourceService.h"
