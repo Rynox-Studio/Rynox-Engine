@@ -1,7 +1,6 @@
 #include "Core/Services/ModuleService.h"
 #include "Core/IO/DynamicLibrary.h"
 #include <Common/Logger.h>
-#include "Core/Modules/OpenGLModule.h"
 
 namespace Rynox::Core::Service {
 	bool Core::Service::ModuleService::Initialize() noexcept(true)
@@ -14,25 +13,26 @@ namespace Rynox::Core::Service {
 	}
 	ModuleService::ErrorCode ModuleService::LoadModule(ModuleType type)
 	{
-		switch (type)
-		{
-		case ModuleType::OpenGLRenderer:
-		{
-			if (m_modules.find(type) != m_modules.end()) {
-				RNX_LOG_ERROR("[ModuleService] Module already loaded: OpenGLRenderer");
-				return ErrorCode::ModuleAlreadyLoaded;
-			}
-			auto module = std::make_unique<Module::OpenGLModule>(this->m_modulesPath, RYNOX_OPENGL_MODULE_FILENAME);
-			if (!module->Load()) {
-				return ErrorCode::FailedToLoadOpenGL;
-			}
-			m_modules[type] = std::move(module);
-			return ErrorCode::None;
-		}
-		default:
-			RNX_LOG_ERROR("[ModuleService] Unknown module type");
-			return ErrorCode::UnknownModuleType;
-		}
+		//switch (type)
+		//{
+		//case ModuleType::OpenGLRenderer:
+		//{
+		//	if (m_modules.find(type) != m_modules.end()) {
+		//		RNX_LOG_ERROR("[ModuleService] Module already loaded: OpenGLRenderer");
+		//		return ErrorCode::ModuleAlreadyLoaded;
+		//	}
+		//	auto module = std::make_unique<Module::OpenGLModule>(this->m_modulesPath, RYNOX_OPENGL_MODULE_FILENAME);
+		//	if (!module->Load()) {
+		//		return ErrorCode::FailedToLoadOpenGL;
+		//	}
+		//	m_modules[type] = std::move(module);
+		//	return ErrorCode::None;
+		//}
+		//default:
+		//	RNX_LOG_ERROR("[ModuleService] Unknown module type");
+		//	return ErrorCode::UnknownModuleType;
+		//}
+		return ErrorCode::None;
 	}
 	void ModuleService::UnLoadModule(ModuleType type)
 	{

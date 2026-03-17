@@ -38,11 +38,6 @@ target_link_libraries(${PROJECT_NAME}
         assimp
 )
 
-target_compile_definitions(${PROJECT_NAME}
-    PRIVATE
-        RYNOX_OPENGL_MODULE_FILENAME="$<TARGET_FILE_NAME:RynoxRenderer-OpenGL>"
-)
-
 set_target_properties(${PROJECT_NAME}
 PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

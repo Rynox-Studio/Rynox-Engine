@@ -3,15 +3,20 @@
 #include <type_traits>
 #include <functional>
 
-enum class ModuleType {
-	OpenGLRenderer = 0
+enum class ModuleType
+{
+	Unknown = 0,
+	Renderer
 };
 
 
-namespace std {
+namespace std 
+{
 	template <>
-	struct hash<ModuleType> {
-		size_t operator()(const ModuleType& key) const noexcept {
+	struct hash<ModuleType> 
+	{
+		size_t operator()(const ModuleType& key) const noexcept 
+		{
 			return std::hash<std::underlying_type_t<ModuleType>>{}(
 				static_cast<std::underlying_type_t<ModuleType>>(key));
 		}
@@ -20,17 +25,19 @@ namespace std {
 
 #include <memory>
 #include <unordered_map>
-#include "Core/Interfaces/IModule.h"
-#include "Core/Interfaces/IService.h"
+#include <Core/Interfaces/IModule.h>
+#include <Core/Interfaces/IService.h>
 
-namespace Rynox::Core::Service {
-	class ModuleService : public IService {
+namespace Rynox::Core::Service
+{
+	class ModuleService : public IService
+	{
 	public:
-		enum class ErrorCode {
+		enum class ErrorCode
+		{
 			None,
-			FailedToLoadOpenGL,
-			ModuleAlreadyLoaded,
-			UnknownModuleType
+			Failed,
+			UnknowModule
 		};
 
 		bool Initialize() noexcept(true) override;
@@ -41,6 +48,7 @@ namespace Rynox::Core::Service {
 		ErrorCode LoadModule(ModuleType type);
 		void UnLoadModule(ModuleType type);
 		IModule* GetModule(ModuleType type);
+
 	private:
 		ModuleService(const ModuleService&) = delete;
 		ModuleService& operator=(const ModuleService&) = delete;
