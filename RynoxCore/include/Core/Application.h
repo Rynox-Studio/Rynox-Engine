@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <Core/Interfaces/IRenderer.h>
+#include <Core/Graphics/IRenderer.h>
 #include "Core/LayerStack.h"
 #include "Core/IWindow.h"
 #include "Core/Services/ModuleService.h"
@@ -26,6 +26,7 @@ namespace Rynox::Core
 
 		bool Initialize(const ApplicationDesc& desc);
 		bool InitServices();
+		bool InitSystems();
 		bool InitModules();
 		void Run();
 		void Stop();
@@ -43,22 +44,18 @@ namespace Rynox::Core
 		// Window
 
 		IWindow& GetWindow();
-
-		// Renderer
-
-		const IRenderer* GetRenderer();
-
 	private:
 		bool OnWindowClose(IEvent& e);
-
+		bool OnWindowResize(IEvent& e);
 	private:
 		bool m_Initialized = false;
 		bool m_Running = false;
 
 		LayerStack m_LayerStack;
+
 		std::unique_ptr<IWindow> m_Window;
-		IRenderer* m_Renderer;
 		std::unique_ptr<Service::ModuleService> m_ModuleService;
+		IRenderer* m_Renderer;
 
 		static Application* s_Instance;
 	};
