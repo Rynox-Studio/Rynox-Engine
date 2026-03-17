@@ -9,19 +9,19 @@ namespace Rynox
 {
 	struct Viewport
 	{
-		int x;
-		int y;
-		int width;
-		int height;
+		uint32_t x = 0;
+		uint32_t y = 0;
+		uint32_t width = 0;
+		uint32_t height = 0;
 	};
 
 	struct RendererDesc
 	{
-		void* nWindow;
-		void* nDisplay;
-		Viewport viewport;
-		int outputWidth = 0;
-		int outputHeight = 0;
+		void* nWindow = nullptr;
+		void* nDisplay = nullptr;
+		Viewport viewport = { 0, 0, 0, 0 };
+		uint32_t outputWidth = 0;
+		uint32_t outputHeight = 0;
 	};
 
 	class IRenderer
