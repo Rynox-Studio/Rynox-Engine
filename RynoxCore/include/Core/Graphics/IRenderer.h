@@ -20,13 +20,17 @@ namespace Rynox
 		void* nWindow;
 		void* nDisplay;
 		Viewport viewport;
+		int outputWidth = 0;
+		int outputHeight = 0;
 	};
 
 	class IRenderer
 	{
 	public:
 		virtual ~IRenderer() = default;
+
 		virtual bool Initialize(RendererDesc desc) = 0;
+		virtual const RendererDesc& GetDesc() const = 0;
 
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;
