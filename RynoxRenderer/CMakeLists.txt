@@ -1,3 +1,4 @@
 cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
 
 add_subdirectory(DirectX12)
+add_subdirectory(OpenGL)

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include "Core/Graphics/RenderTypes.h"
 #include "Renderer/OpenGL/OpenGLResources.h"
 #include "Core/Graphics/VertexLayout.h"
 

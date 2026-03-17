@@ -4,7 +4,6 @@
 #include <type_traits>
 #include <Common/Logger.h>
 
-#include "Core/Graphics/RenderTypes.h"
 #include "Core/Graphics/GraphicsData.h"
 
 #include "Renderer/OpenGL/OpenGLResourceSlot.h"
@@ -44,7 +43,7 @@ namespace Rynox::Renderer::OpenGL
 				MeshHandle
 			>(m_meshes, meshData);
 
-			m_meshQueue.push_back(handle.index);
+			m_meshQueue.push_back(handle.id);
 			return handle;
 		}
 		ShaderHandle QueueShader(const ShaderData& shaderData)
@@ -55,7 +54,7 @@ namespace Rynox::Renderer::OpenGL
 				ShaderHandle
 			>(m_shaders, shaderData);
 
-			m_shaderQueue.push_back(handle.index);
+			m_shaderQueue.push_back(handle.id);
 			return handle;
 		}
 		template<typename T, typename Handle>

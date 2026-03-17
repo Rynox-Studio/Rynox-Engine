@@ -40,6 +40,6 @@ add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxCommon)
 add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxMath)
 
 # Root
-add_subdirectory(RynoxCore)
 add_subdirectory(RynoxRenderer)
+add_subdirectory(RynoxCore)
 add_subdirectory(RynoxEditor)

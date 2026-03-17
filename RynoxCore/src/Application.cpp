@@ -4,7 +4,8 @@
 #include <Common/Assert.h>
 
 #include "Core/Events/WindowEvents.h"
-#include "Core/Modules/OpenGLModule.h"
+
+#include "Core/Interfaces/IRendererModule.h"
 
 namespace Rynox::Core
 {
@@ -53,7 +54,22 @@ namespace Rynox::Core
 		if (!InitModules())
 			return false;
 
-		m_Renderer->Initialize(m_Window->GetNativeHandle(), nullptr);
+		if (!InitSystems())
+			return false;
+
+		{
+			RendererDesc rendererDesc;
+			rendererDesc.nWindow = m_Window->GetNativeHandle();
+			rendererDesc.nDisplay = nullptr;
+
+			int width, height;
+			m_Window->GetSize(&width, &height);
+			rendererDesc.viewport = { 0, 0, (uint32_t)width, (uint32_t)height };
+			rendererDesc.outputWidth = (uint32_t)width;
+			rendererDesc.outputHeight = (uint32_t)height;
+
+			m_Renderer->Initialize(rendererDesc);
+		}
 
 		m_Initialized = true;
 		return true;
@@ -61,22 +77,22 @@ namespace Rynox::Core
 
 	bool Application::InitServices()
 	{
-		m_ModuleService = std::make_unique<Service::ModuleService>("modules");
+		m_ModuleService = std::make_unique<Service::ModuleService>();
 		m_ModuleService->Initialize();
+		return true;
+	}
+
+	bool Application::InitSystems()
+	{
 		return true;
 	}
 
 	bool Application::InitModules()
 	{
-		Service::ModuleService::ErrorCode code = m_ModuleService->LoadModule(ModuleType::OpenGLRenderer);
-		if (code != Service::ModuleService::ErrorCode::None)
-		{
-			RNX_LOG_ERROR("[Application] Failed load module: OpenGLRenderer");
-			return false;
-		}
-
-		Module::OpenGLModule* openGLModule = static_cast<Module::OpenGLModule*>(m_ModuleService->GetModule(ModuleType::OpenGLRenderer));
-		m_Renderer = openGLModule->GetRenderer();
+		m_ModuleService->LoadModule(RYNOX_OPENGL_MODULE_FILENAME, "RendererOpenGL");
+		IRendererModule* rendererModule = dynamic_cast<IRendererModule*>(m_ModuleService->GetModule("RendererOpenGL"));
+		rendererModule->Initialize();
+		m_Renderer = rendererModule->GetRenderer();
 		return true;
 	}
 
@@ -86,6 +102,7 @@ namespace Rynox::Core
 
 		m_Running = true;
 
+		auto startTime = std::chrono::steady_clock::now();
 		auto last = std::chrono::steady_clock::now();
 		while (m_Running)
 		{
@@ -93,6 +110,8 @@ namespace Rynox::Core
 			float dt = std::chrono::duration<float>(now - last).count();
 			last = now;
 			
+			float totalTime = std::chrono::duration<float>(now - startTime).count();
+
 			m_Window->PollEvents();
 
 			for (auto& layer : m_LayerStack)
@@ -105,7 +124,6 @@ namespace Rynox::Core
 			{
 				layer->OnRender();
 			}
-			m_Renderer->RenderFrame(Graphics::FrameContext());
 			m_Renderer->EndFrame();
 		}
 	}
@@ -119,6 +137,7 @@ namespace Rynox::Core
 	{
 		EventDispatcher d(e);
 		d.Dispatch<WindowCloseEvent>(RNX_BIND_EVENT_FN(OnWindowClose));
+		d.Dispatch<WindowResizeEvent>(RNX_BIND_EVENT_FN(OnWindowResize));
 
 		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
 		{
@@ -153,14 +172,15 @@ namespace Rynox::Core
 		return *m_Window.get();
 	}
 
-	const IRenderer* Application::GetRenderer()
-	{
-		return m_Renderer;
-	}
-
 	bool Application::OnWindowClose(IEvent& e)
 	{
 		Stop();
+		return true;
+	}
+	bool Application::OnWindowResize(IEvent& e)
+	{
+		WindowResizeEvent& event = (WindowResizeEvent&)e;
+		m_Renderer->SetViewport({ 0, 0, (uint32_t)event.GetWidth(), (uint32_t)event.GetHeight() });
 		return true;
 	}
 }
