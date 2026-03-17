@@ -26,5 +26,8 @@ namespace Rynox::Renderer::OpenGL
 		static void UnBindIndexBuffer();
 		static void UnBindVertexArray();
 		static void UnBindShader();
+
+		static void DrawElements(uint32_t count, uint32_t offset);
+		static void UniformMatrix4fv(const OpenGLShader& shader, const char* name, const float* data);
 	};
 }

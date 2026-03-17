@@ -1,11 +1,11 @@
 #pragma once
 
 #include <vector>
+#include <type_traits>
+#include <Common/Logger.h>
 
 #include "Core/Graphics/RenderTypes.h"
 #include "Core/Graphics/GraphicsData.h"
-
-#include <Common/Logger.h>
 
 #include "Renderer/OpenGL/OpenGLResourceSlot.h"
 #include "Renderer/OpenGL/OpenGLResources.h"
@@ -57,6 +57,32 @@ namespace Rynox::Renderer::OpenGL
 
 			m_shaderQueue.push_back(handle.index);
 			return handle;
+		}
+		template<typename T, typename Handle>
+		auto& GetSlotContainer()
+		{
+			if constexpr (std::is_same_v<Handle, MeshHandle>)
+				return m_meshes;
+			else if constexpr (std::is_same_v<Handle, ShaderHandle>)
+				return m_shaders;
+		}
+		template<typename T, typename Handle>
+		T* GetResource(Handle h)
+		{
+			auto& slots = GetSlotContainer<T, Handle>();
+
+			if (h.index >= slots.size())
+				return nullptr;
+
+			auto& slot = slots[h.index];
+
+			if (slot.generation != h.generation)
+				return nullptr;
+
+			if (!slot.active)
+				return nullptr;
+
+			return &slot.resource;
 		}
 		template<typename T>
 		uint32_t FindFreeSlot(const std::vector<T>& slots)

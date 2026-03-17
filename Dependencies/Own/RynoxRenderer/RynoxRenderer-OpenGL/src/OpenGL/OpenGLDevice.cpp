@@ -171,4 +171,15 @@ namespace Rynox::Renderer::OpenGL
 	{
 		glUseProgram(0);
 	}
+	void OpenGLDevice::DrawElements(uint32_t count, uint32_t offset)
+	{
+		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)(offset * sizeof(uint32_t)));
+	}
+	void OpenGLDevice::UniformMatrix4fv(const OpenGLShader& shader, const char* name, const float* data)
+	{
+		GLint location = glGetUniformLocation(shader.id, name);
+        if (location != -1) {
+            glUniformMatrix4fv(location, 1, GL_FALSE, data);
+        }
+	}
 }

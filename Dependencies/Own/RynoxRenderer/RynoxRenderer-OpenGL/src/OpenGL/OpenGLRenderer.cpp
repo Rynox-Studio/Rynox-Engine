@@ -1,8 +1,10 @@
 #include "Renderer/OpenGL/OpenGLRenderer.h"
 
 #include <glad/glad.h>
-#include <Renderer/Platform/Win32GLContext.h>
 #include <Common/Logger.h>
+
+#include "Renderer/Platform/Win32GLContext.h"
+#include "Renderer/OpenGL/OpenGLDevice.h"
 
 namespace Rynox::Renderer::OpenGL
 {
@@ -38,6 +40,7 @@ namespace Rynox::Renderer::OpenGL
             m_impl->resource = std::make_unique<OpenGLResourceService>();
 
 			SetClearColor(0.1, 0.1, 0.1, 1.0);
+			glEnable(GL_DEPTH_TEST);
             m_impl->isInitialized = true;
 		}
 
@@ -50,7 +53,30 @@ namespace Rynox::Renderer::OpenGL
 	}
     void OpenGLRenderer::RenderFrame(const Graphics::FrameContext& ctx)
     {
+		Math::Mat4 VP = ctx.camera.projMatrix * ctx.camera.viewMatrix;
+		for (auto& cmd : ctx.commands)
+		{
+			Math::Mat4 MVP = VP * cmd.worldMatrix;
 
+			OpenGLShader* shader = m_impl->resource->GetResource<OpenGLShader>(cmd.shader);
+			if (shader != nullptr)
+			{
+				OpenGLDevice::BindShader(*shader);
+				OpenGLDevice::UniformMatrix4fv(*shader, "uMVP", &MVP.data[0]);
+
+				for (auto& item : cmd.items)
+				{
+					OpenGLMesh* mesh = m_impl->resource->GetResource<OpenGLMesh>(item.mesh);
+					if (mesh != nullptr)
+					{
+						OpenGLDevice::BindVertexArray(mesh->vao);
+						OpenGLDevice::DrawElements(mesh->count, 0);
+					}
+				}
+			}
+		}
+		OpenGLDevice::UnBindVertexArray();
+		OpenGLDevice::UnBindShader();
     }
 	void OpenGLRenderer::EndFrame()
 	{
