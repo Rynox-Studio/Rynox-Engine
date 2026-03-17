@@ -11,7 +11,7 @@ if(MSVC)
   add_compile_options(/MP)
 endif()
 
-# Dependencies Third_Party
+# Third_Party
 add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glad)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -33,11 +33,13 @@ add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glm EXCLUDE_FROM_ALL)
 
 add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/Flies)
 
-# Dependencies Own
+# Options
+
+# Own
 add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxCommon)
 add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxMath)
-add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxRenderer)
 
 # Root
 add_subdirectory(RynoxCore)
+add_subdirectory(RynoxRenderer)
 add_subdirectory(RynoxEditor)
