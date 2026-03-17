@@ -9,11 +9,11 @@
 
 namespace Rynox
 {
-    class OpenGLRendererModule : public IRendererModule
+    class DirectX12RendererModule : public IRendererModule
     {
     public:
-        OpenGLRendererModule();
-		~OpenGLRendererModule();
+        DirectX12RendererModule();
+		~DirectX12RendererModule();
 
         bool Initialize() override;
         void Shutdown() override;

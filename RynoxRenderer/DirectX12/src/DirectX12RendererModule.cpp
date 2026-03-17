@@ -2,36 +2,36 @@
 
 namespace Rynox
 {
-	OpenGLRendererModule::OpenGLRendererModule()
+	DirectX12RendererModule::DirectX12RendererModule()
 	{
 		m_renderer = new Renderer::Dx12Renderer();
 	}
-	OpenGLRendererModule::~OpenGLRendererModule()
+	DirectX12RendererModule::~DirectX12RendererModule()
 	{
 		delete m_renderer;
 	}
-	bool OpenGLRendererModule::Initialize()
+	bool DirectX12RendererModule::Initialize()
 	{
 		return m_renderer != nullptr;
 	}
-	void OpenGLRendererModule::Shutdown()
+	void DirectX12RendererModule::Shutdown()
 	{
 	}
-	std::string OpenGLRendererModule::GetName() const
+	std::string DirectX12RendererModule::GetName() const
 	{
 		return std::string("Dx12Renderer");
 	}
-	std::string OpenGLRendererModule::GetVersion() const
+	std::string DirectX12RendererModule::GetVersion() const
 	{
 		return std::string("1.0.0");
 	}
-	Rynox::IRenderer* OpenGLRendererModule::GetRenderer()
+	Rynox::IRenderer* DirectX12RendererModule::GetRenderer()
 	{
 		return m_renderer;
 	}
 	Rynox::IRendererModule* CreateModule()
 	{
-		return new OpenGLRendererModule();
+		return new DirectX12RendererModule();
 	}
 	void DestroyModule(Rynox::IRendererModule* module)
 	{
