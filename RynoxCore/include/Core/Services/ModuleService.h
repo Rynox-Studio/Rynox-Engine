@@ -1,61 +1,29 @@
 #pragma once
 
-#include <type_traits>
-#include <functional>
-
-enum class ModuleType
-{
-	Unknown = 0,
-	Renderer
-};
-
-
-namespace std 
-{
-	template <>
-	struct hash<ModuleType> 
-	{
-		size_t operator()(const ModuleType& key) const noexcept 
-		{
-			return std::hash<std::underlying_type_t<ModuleType>>{}(
-				static_cast<std::underlying_type_t<ModuleType>>(key));
-		}
-	};
-}
-
-#include <memory>
 #include <unordered_map>
-#include <Core/Interfaces/IModule.h>
-#include <Core/Interfaces/IService.h>
+#include <string>
 
-namespace Rynox::Core::Service
+#include "Core/IO/DynamicLibrary.h"
+#include "Core/Interfaces/IModule.h"
+
+namespace Rynox::Core
 {
-	class ModuleService : public IService
-	{
-	public:
-		enum class ErrorCode
-		{
-			None,
-			Failed,
-			UnknowModule
-		};
+    class ModuleService
+    {
+    public:
+        ~ModuleService();
 
-		bool Initialize() noexcept(true) override;
+        bool LoadModule(const std::string& path);
+        void UnloadModule(const std::string& name);
 
-		ModuleService(std::string modulesPath);
-		~ModuleService();
+        IModule* GetModule(const std::string& name);
 
-		ErrorCode LoadModule(ModuleType type);
-		void UnLoadModule(ModuleType type);
-		IModule* GetModule(ModuleType type);
+    private:
+        struct ModuleInfo {
+            LibHandle handle;
+            IModule* instance;
+        };
 
-	private:
-		ModuleService(const ModuleService&) = delete;
-		ModuleService& operator=(const ModuleService&) = delete;
-		ModuleService(ModuleService&&) = delete;
-		ModuleService& operator=(ModuleService&&) = delete;
-
-		std::unordered_map<ModuleType, std::unique_ptr<IModule>> m_modules;
-		std::string m_modulesPath;
-	};
+        std::unordered_map<std::string, ModuleInfo> m_modules;
+    };
 }
