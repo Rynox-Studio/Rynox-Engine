@@ -27,7 +27,7 @@ namespace Rynox
 	class IRenderer
 	{
 	public:
-		virtual ~IRenderer() = default;
+		virtual ~IRenderer() noexcept(false) = default;
 
 		virtual bool Initialize(RendererDesc desc) = 0;
 		virtual const RendererDesc& GetDesc() const = 0;
@@ -35,7 +35,7 @@ namespace Rynox
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;
 
-		virtual void SetOutputSize(uint32_t width, uint32_t height) = 0;
+		virtual bool SetOutputSize(uint32_t width, uint32_t height) = 0;
 		virtual void SetViewport(Viewport viewport) = 0;
 		virtual void SetClearColor(Math::Vec4 color) = 0;
 
