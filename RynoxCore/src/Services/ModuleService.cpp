@@ -59,21 +59,33 @@ namespace Rynox::Core::Service
 		m_modules[name] = {handle, module};
 		return true;
 	}
-	void ModuleService::UnloadModule(const std::string& name)
+	bool ModuleService::UnloadModule(const std::string& name)
 	{
 		auto it = m_modules.find(name);
-		if (it == m_modules.end()) return;
+		if (it == m_modules.end())
+			return false;
+
+		if (!it->second.instance)
+			return false;
 
 		it->second.instance->Shutdown();
 
 		using DestroyFn = void (*)(IModule*);
 		auto destroy = reinterpret_cast<DestroyFn>(
 			IO::DynamicLibrary::GetSymbol(it->second.handle, "DestroyModule")
-		);
-		if (destroy) destroy(it->second.instance);
+			);
 
-		IO::DynamicLibrary::UnLoad(it->second.handle);
+		if (!destroy)
+			return false;
+
+		destroy(it->second.instance);
+
+		if (!IO::DynamicLibrary::UnLoad(it->second.handle))
+			return false;
+
 		m_modules.erase(it);
+
+		return true;
 	}
 	IModule* ModuleService::GetModule(const std::string& name)
 	{

@@ -18,10 +18,10 @@ namespace Rynox::Core::IO
 #endif
     }
 
-    void DynamicLibrary::UnLoad(LibHandle handle)
+    bool DynamicLibrary::UnLoad(LibHandle handle)
     {
 #if defined(_WIN32)
-        FreeLibrary((HMODULE)handle);
+        return FreeLibrary((HMODULE)handle);
 #else
         dlclose(handle);
 #endif

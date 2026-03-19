@@ -17,7 +17,7 @@ namespace Rynox::Core::Service
         bool Initialize() noexcept(true);
 
         bool LoadModule(const std::string& path, const std::string& name);
-        void UnloadModule(const std::string& name);
+        bool UnloadModule(const std::string& name);
 
         IModule* GetModule(const std::string& name);
     private:
