@@ -1,12 +1,26 @@
 #pragma once
 
-#include "Core/Graphics/GraphicsData.h"
-#include "Core/Graphics/GPUHandle.h"
+#include <Common/Macros.h>
+#include <Core/Graphics/GraphicsData.h>
+#include <Core/Graphics/GPUHandle.h>
 
 #include <Math/Vec4.h>
 
 namespace Rynox
 {
+	enum class GraphicsAPI
+	{
+		OpenGL,
+		DirectX12,
+
+#ifdef RNX_WINDOWS
+		Default = DirectX12,
+#else
+		Default = OpenGL,
+#endif
+		Count
+	};
+
 	struct Viewport
 	{
 		uint32_t x = 0;
@@ -29,15 +43,15 @@ namespace Rynox
 	public:
 		virtual ~IRenderer() noexcept(false) = default;
 
-		virtual bool Initialize(RendererDesc desc) = 0;
+		virtual bool Initialize(const RendererDesc& desc) = 0;
 		virtual const RendererDesc& GetDesc() const = 0;
 
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;
 
 		virtual bool SetOutputSize(uint32_t width, uint32_t height) = 0;
-		virtual void SetViewport(Viewport viewport) = 0;
-		virtual void SetClearColor(Math::Vec4 color) = 0;
+		virtual void SetViewport(const Viewport& viewport) = 0;
+		virtual void SetClearColor(const Math::Vec4& color) = 0;
 
 		virtual void DrawMesh(Graphics::MeshHandle mesh, Graphics::ShaderHandle shader) = 0;
 

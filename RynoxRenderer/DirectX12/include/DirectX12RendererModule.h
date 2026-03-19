@@ -5,7 +5,7 @@
 
 #include <Common/Macros.h>
 
-#include "Renderer/Dx12Renderer.h"
+#include <Dx12Renderer.h>
 
 namespace Rynox
 {
@@ -17,19 +17,19 @@ namespace Rynox
 
         bool Initialize() override;
         void Shutdown() override;
+
         std::string GetName() const override;
         std::string GetVersion() const override;
+
         Rynox::IRenderer* GetRenderer() override;
+
     private:
-        Renderer::Dx12Renderer* m_renderer;
+        DirectX12::Dx12Renderer* m_renderer;
     };
 
-#ifdef __cplusplus
-    extern "C" {
-#endif
+    extern "C" 
+    {
         RNX_RENDERER_API Rynox::IRendererModule* CreateModule();
         RNX_RENDERER_API void DestroyModule(Rynox::IRendererModule* module);
-#ifdef __cplusplus
     }
-#endif
 }

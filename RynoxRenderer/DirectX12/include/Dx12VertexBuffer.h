@@ -1,12 +1,13 @@
 #pragma once
 
-#include <Renderer/DirectX12.h>
+#include <DirectX12.h>
 
-namespace Rynox::Renderer
+namespace Rynox::DirectX12
 {
     class Dx12VertexBuffer
     {
     public:
+        Dx12VertexBuffer() = default;
         Dx12VertexBuffer(
             ID3D12Device14* device,
             ID3D12GraphicsCommandList* cmdList,
@@ -18,6 +19,7 @@ namespace Rynox::Renderer
 
         Dx12VertexBuffer(const Dx12VertexBuffer&) = delete;
         Dx12VertexBuffer& operator=(const Dx12VertexBuffer&) = delete;
+
         Dx12VertexBuffer(Dx12VertexBuffer&&) = default;
         Dx12VertexBuffer& operator=(Dx12VertexBuffer&&) = default;
 

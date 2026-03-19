@@ -37,6 +37,8 @@ namespace Rynox::Core
 		const_reverse_iterator rbegin() const;
 		const_reverse_iterator rend() const;
 
+		void Cleanup();
+
 	private:
 		std::vector<ILayer*> m_Layers;
 		uint32_t m_LayerInsertIndex = 0;

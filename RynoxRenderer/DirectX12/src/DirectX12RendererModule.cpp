@@ -1,10 +1,10 @@
-#include "DirectX12RendererModule.h"
+#include <DirectX12RendererModule.h>
 
 namespace Rynox
 {
 	DirectX12RendererModule::DirectX12RendererModule()
 	{
-		m_renderer = new Renderer::Dx12Renderer();
+		m_renderer = new DirectX12::Dx12Renderer();
 	}
 	DirectX12RendererModule::~DirectX12RendererModule()
 	{
@@ -16,6 +16,7 @@ namespace Rynox
 	}
 	void DirectX12RendererModule::Shutdown()
 	{
+		m_renderer->Shutdown();
 	}
 	std::string DirectX12RendererModule::GetName() const
 	{

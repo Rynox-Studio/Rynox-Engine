@@ -23,25 +23,25 @@ namespace Rynox::Renderer::OpenGL
     {
         delete m_impl;
     }
-	bool OpenGLRenderer::Initialize(RendererDesc desc)
+	bool OpenGLRenderer::Initialize(const RendererDesc& desc)
 	{
 		if (!m_impl->isInitialized)
 		{
 			m_impl->context = std::make_unique<Platform::Win32GLContext>((static_cast<HWND>(desc.nWindow)));
 			if (!m_impl->context->Init())
 			{
-				RNX_LOG_ERROR("error init context");
+				RNX_LOG_ERROR("[OpenGL] Failed to initialize Context.");
 				return false;
 			}
 
 			if (!gladLoadGLLoader((GLADloadproc)m_impl->context->GetOpenGLLoader())) {
-				RNX_LOG_ERROR("error init glad");
+				RNX_LOG_ERROR("[OpenGL] Failed to initialize GLAD.");
 				return false;
 			}
 
 			m_impl->resource = std::make_unique<OpenGLResourceService>();
 
-			SetClearColor(Math::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
+			SetClearColor(Math::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
 			glEnable(GL_DEPTH_TEST);
 			m_impl->isInitialized = true;
 		}
@@ -65,11 +65,12 @@ namespace Rynox::Renderer::OpenGL
 	{
 		return true;
 	}
-	void OpenGLRenderer::SetViewport(Viewport viewport)
+	void OpenGLRenderer::SetViewport(const Viewport& viewport)
 	{
 		glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+		m_impl->desc.viewport = viewport;
 	}
-	void OpenGLRenderer::SetClearColor(Math::Vec4 color)
+	void OpenGLRenderer::SetClearColor(const Math::Vec4& color)
 	{
 		glClearColor(color.r, color.g, color.b, color.a);
 	}

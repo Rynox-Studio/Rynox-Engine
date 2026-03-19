@@ -1,10 +1,9 @@
-#include <Renderer/Dx12IndexBuffer.h>
+#include <Dx12IndexBuffer.h>
 
 #include <Common/Assert.h>
 
-namespace Rynox::Renderer
+namespace Rynox::DirectX12
 {
-
     Dx12IndexBuffer::Dx12IndexBuffer(
         ID3D12Device14* device,
         ID3D12GraphicsCommandList* cmdList,

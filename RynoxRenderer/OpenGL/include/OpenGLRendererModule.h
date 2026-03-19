@@ -24,12 +24,9 @@ namespace Rynox
         Renderer::OpenGL::OpenGLRenderer* m_renderer;
     };
 
-#ifdef __cplusplus
-    extern "C" {
-#endif
+    extern "C"
+    {
         RNX_RENDERER_API Rynox::IRendererModule* CreateModule();
         RNX_RENDERER_API void DestroyModule(Rynox::IRendererModule* module);
-#ifdef __cplusplus
     }
-#endif
 }

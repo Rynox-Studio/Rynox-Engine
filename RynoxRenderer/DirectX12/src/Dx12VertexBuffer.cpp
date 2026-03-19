@@ -1,16 +1,15 @@
-#include <Renderer/Dx12VertexBuffer.h>
+#include <Dx12VertexBuffer.h>
 
 #include <Common/Assert.h>
 
-namespace Rynox::Renderer
+namespace Rynox::DirectX12
 {
-
     Dx12VertexBuffer::Dx12VertexBuffer(
         ID3D12Device14* device,
         ID3D12GraphicsCommandList* cmdList,
         const void* data,
-        UINT                       size,
-        UINT                       stride)
+        UINT size,
+        UINT stride)
     {
         RNX_ASSERT(device, "Device is null");
         RNX_ASSERT(cmdList, "CommandList is null");
@@ -131,5 +130,4 @@ namespace Rynox::Renderer
     {
         m_StagingBuffer.Reset();
     }
-
 }

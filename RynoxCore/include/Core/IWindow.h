@@ -12,7 +12,7 @@ namespace Rynox::Core
 
 	struct WindowDesc 
 	{
-		std::string Title = "Venom";
+		std::string Title = "Rynox";
 		int Position[2] = { 0, 0 };
 		int Size[2] = { 1280, 720 };
 
@@ -24,6 +24,9 @@ namespace Rynox::Core
 
 	class IWindow 
 	{
+	public:
+		[[nodiscard]] static IWindow* Create();
+
 	public:
 		virtual ~IWindow() = default;
 
@@ -46,7 +49,5 @@ namespace Rynox::Core
 		[[nodiscard]] virtual bool IsShown() = 0;
 
 		[[nodiscard]] virtual bool ShouldClose() = 0;
-
-		[[nodiscard]] static std::unique_ptr<IWindow> Create();
 	};
 }

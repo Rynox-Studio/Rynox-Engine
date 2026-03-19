@@ -3,17 +3,20 @@
 #include <string>
 
 #include <Core/Graphics/IRenderer.h>
-#include "Core/LayerStack.h"
-#include "Core/IWindow.h"
-#include "Core/Services/ModuleService.h"
+#include <Core/LayerStack.h>
+#include <Core/IWindow.h>
+#include <Core/Services/ModuleService.h>
 
-#include "Events/IEvent.h"
+#include <Core/Events/IEvent.h>
+#include <Core/Events/WindowEvents.h>
+#include <Core/Events/KeyEvents.h>
 
 namespace Rynox::Core
 {
 	struct ApplicationDesc
 	{
 		std::string Name = "Rynox Application";
+		GraphicsAPI GraphicsAPI = GraphicsAPI::Default;
 	};
 
 	class Application
@@ -25,13 +28,12 @@ namespace Rynox::Core
 		static Application& Get();
 
 		bool Initialize(const ApplicationDesc& desc);
-		bool InitServices();
-		bool InitSystems();
-		bool InitModules();
 		void Run();
 		void Stop();
 
 		void RaiseEvent(IEvent& e);
+
+		const ApplicationDesc& GetDesc() const;
 
 		// LayerStack
 
@@ -41,13 +43,25 @@ namespace Rynox::Core
 		void PopLayer(ILayer* layer);
 		void PopOverlay(ILayer* overlay);
 
-		// Window
+		// Other
 
-		IWindow& GetWindow();
+		IWindow* Window();
+		IRenderer* Renderer();
+
 	private:
-		bool OnWindowClose(IEvent& e);
-		bool OnWindowResize(IEvent& e);
+		bool InitServices();
+		bool InitSystems();
+		bool InitModules();
+
+		bool OnWindowClose(WindowCloseEvent& e);
+		bool OnWindowResize(WindowResizeEvent& e);
+		bool OnKeyDown(KeyDownEvent& e);
+
+		bool ReloadRenderer();
+		bool SwitchRenderer(GraphicsAPI api);
+
 	private:
+		ApplicationDesc m_Desc;
 		bool m_Initialized = false;
 		bool m_Running = false;
 
@@ -55,7 +69,7 @@ namespace Rynox::Core
 
 		std::unique_ptr<IWindow> m_Window;
 		std::unique_ptr<Service::ModuleService> m_ModuleService;
-		IRenderer* m_Renderer;
+		IRenderer* m_Renderer = nullptr;
 
 		static Application* s_Instance;
 	};

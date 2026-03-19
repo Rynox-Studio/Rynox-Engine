@@ -3,9 +3,11 @@
 #include <chrono>
 #include <Common/Assert.h>
 
-#include "Core/Events/WindowEvents.h"
+#include <Core/Events/WindowEvents.h>
+#include <Core/Events/KeyEvents.h>
 
-#include "Core/Interfaces/IRendererModule.h"
+#include <Core/Interfaces/IRendererModule.h>
+#include <Core/Graphics/IRenderer.h>
 
 namespace Rynox::Core
 {
@@ -36,7 +38,9 @@ namespace Rynox::Core
 		if (m_Running) return false;
 		m_Initialized = false;
 
-		m_Window = IWindow::Create();
+		m_Desc = desc;
+
+		m_Window = std::unique_ptr<IWindow>(IWindow::Create());
 		{
 			WindowDesc wndDesc;
 			wndDesc.Title = desc.Name;
@@ -44,31 +48,46 @@ namespace Rynox::Core
 
 			if (!m_Window || !m_Window->Initialize(wndDesc))
 			{
+				RNX_LOG_ERROR("[Application] Failed to initialize Window.");
 				return false;
 			}
 		}
 
 		if (!InitServices())
+		{
+			RNX_LOG_ERROR("[Application] Failed to initialize Services.");
 			return false;
+		}
 
 		if (!InitModules())
+		{
+			RNX_LOG_ERROR("[Application] Failed to initialize Modules.");
 			return false;
+		}
 
 		if (!InitSystems())
-			return false;
-
 		{
+			RNX_LOG_ERROR("[Application] Failed to initialize Systems.");
+			return false;
+		}
+
+		// Renderer
+		{
+			int width, height;
+			m_Window->GetSize(&width, &height);
+
 			RendererDesc rendererDesc;
 			rendererDesc.nWindow = m_Window->GetNativeHandle();
 			rendererDesc.nDisplay = nullptr;
-
-			int width, height;
-			m_Window->GetSize(&width, &height);
 			rendererDesc.viewport = { 0, 0, (uint32_t)width, (uint32_t)height };
 			rendererDesc.outputWidth = (uint32_t)width;
 			rendererDesc.outputHeight = (uint32_t)height;
 
-			m_Renderer->Initialize(rendererDesc);
+			if (!m_Renderer->Initialize(rendererDesc))
+			{
+				RNX_LOG_ERROR("[Application] Failed to initialize Renderer.");
+				return false;
+			}
 		}
 
 		m_Initialized = true;
@@ -78,7 +97,12 @@ namespace Rynox::Core
 	bool Application::InitServices()
 	{
 		m_ModuleService = std::make_unique<Service::ModuleService>();
-		m_ModuleService->Initialize();
+		if (!m_ModuleService->Initialize())
+		{
+			RNX_LOG_ERROR("[Application] Failed to initialize Module Service.");
+			return false;
+		}
+
 		return true;
 	}
 
@@ -89,10 +113,41 @@ namespace Rynox::Core
 
 	bool Application::InitModules()
 	{
-		m_ModuleService->LoadModule(RYNOX_OPENGL_MODULE_FILENAME, "RendererOpenGL");
-		IRendererModule* rendererModule = dynamic_cast<IRendererModule*>(m_ModuleService->GetModule("RendererOpenGL"));
-		rendererModule->Initialize();
+		switch (m_Desc.GraphicsAPI)
+		{
+			case GraphicsAPI::OpenGL:
+			{
+				if (!m_ModuleService->LoadModule(RYNOX_OPENGL_MODULE_FILENAME, "Renderer"))
+				{
+					RNX_LOG_ERROR("[Application] Failed to load Renderer Module. (OpenGL)");
+					return false;
+				}
+			} break;
+
+			case GraphicsAPI::DirectX12:
+			{
+				if (!m_ModuleService->LoadModule(RYNOX_DIRECTX12_MODULE_FILENAME, "Renderer"))
+				{
+					RNX_LOG_ERROR("[Application] Failed to load Renderer Module. (DirectX12)");
+					return false;
+				}
+			} break;
+		}
+
+		IRendererModule* rendererModule = dynamic_cast<IRendererModule*>(m_ModuleService->GetModule("Renderer"));
+		if (!rendererModule)
+		{
+			RNX_LOG_ERROR("[Application] Failed to cast IModule to IRendererModule.");
+			return false;
+		}
+
+		if (!rendererModule->Initialize())
+		{
+			RNX_LOG_ERROR("[Application] Failed to initailize Renderer Module.");
+			return false;
+		}
 		m_Renderer = rendererModule->GetRenderer();
+
 		return true;
 	}
 
@@ -102,15 +157,14 @@ namespace Rynox::Core
 
 		m_Running = true;
 
-		auto startTime = std::chrono::steady_clock::now();
+		auto start = std::chrono::steady_clock::now();
 		auto last = std::chrono::steady_clock::now();
 		while (m_Running)
 		{
 			auto now = std::chrono::steady_clock::now();
+			float time = std::chrono::duration<float>(now - start).count();
 			float dt = std::chrono::duration<float>(now - last).count();
 			last = now;
-			
-			float totalTime = std::chrono::duration<float>(now - startTime).count();
 
 			m_Window->PollEvents();
 
@@ -119,12 +173,15 @@ namespace Rynox::Core
 				layer->OnUpdate(dt);
 			}
 
-			m_Renderer->BeginFrame();
-			for (auto& layer : m_LayerStack)
+			if (m_Renderer)
 			{
-				layer->OnRender();
+				m_Renderer->BeginFrame();
+				for (auto& layer : m_LayerStack)
+				{
+					layer->OnRender();
+				}
+				m_Renderer->EndFrame();
 			}
-			m_Renderer->EndFrame();
 		}
 	}
 
@@ -138,6 +195,7 @@ namespace Rynox::Core
 		EventDispatcher d(e);
 		d.Dispatch<WindowCloseEvent>(RNX_BIND_EVENT_FN(OnWindowClose));
 		d.Dispatch<WindowResizeEvent>(RNX_BIND_EVENT_FN(OnWindowResize));
+		d.Dispatch<KeyDownEvent>(RNX_BIND_EVENT_FN(OnKeyDown));
 
 		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
 		{
@@ -145,6 +203,11 @@ namespace Rynox::Core
 				break;
 			(*it)->OnEvent(e);
 		}
+	}
+
+	const ApplicationDesc& Application::GetDesc() const
+	{
+		return m_Desc;
 	}
 
 	void Application::PushLayer(ILayer* layer)
@@ -167,20 +230,132 @@ namespace Rynox::Core
 		m_LayerStack.PopOverlay(overlay);
 	}
 
-	IWindow& Application::GetWindow()
+	IWindow* Application::Window()
 	{
-		return *m_Window.get();
+		return m_Window.get();
 	}
 
-	bool Application::OnWindowClose(IEvent& e)
+	IRenderer* Application::Renderer()
+	{
+		return m_Renderer;
+	}
+
+	bool Application::OnWindowClose(WindowCloseEvent& e)
 	{
 		Stop();
 		return true;
 	}
-	bool Application::OnWindowResize(IEvent& e)
+
+	bool Application::OnWindowResize(WindowResizeEvent& e)
 	{
-		WindowResizeEvent& event = (WindowResizeEvent&)e;
-		m_Renderer->SetViewport({ 0, 0, (uint32_t)event.GetWidth(), (uint32_t)event.GetHeight() });
+		if (m_Renderer)
+		{
+			m_Renderer->SetOutputSize(e.GetWidth(), e.GetHeight());
+			m_Renderer->SetViewport({ 0, 0, (uint32_t)e.GetWidth(), (uint32_t)e.GetHeight() });
+		}
 		return true;
+	}
+
+	bool Application::OnKeyDown(KeyDownEvent& e)
+	{
+		RNX_LOG_DEBUG("KeyDown: 0x{:X}", e.GetScancode());
+		switch (e.GetScancode())
+		{
+			// F1 - Reload Renderer
+			case 0x3B:
+			{
+				RNX_LOG_INFO("[Application] Reloading Renderer...");
+				if (!ReloadRenderer())
+				{
+					RNX_LOG_INFO("[Application] Failed to reload Renderer.");
+					return true;
+				}
+
+				RNX_LOG_INFO("[Application] Successfully reloaded.");
+			} break;
+
+			// F2 - Swicth Renderer
+			case 0x3C:
+			{
+				RNX_LOG_INFO("[Application] Swicthing Renderer.");
+
+				if (!SwitchRenderer(GraphicsAPI(((int)m_Desc.GraphicsAPI + 1) % (int)GraphicsAPI::Count)))
+				{
+					RNX_LOG_INFO("[Application] Failed to reload Renderer.");
+					return true;
+				}
+
+				RNX_LOG_INFO("[Application] Successfully switched.");
+			} break;
+
+			default: return false;
+		}
+
+		return true;
+	}
+
+	bool Application::ReloadRenderer()
+	{
+		RendererDesc desc{};
+		if (m_Renderer)
+		{
+			desc = m_Renderer->GetDesc();
+			m_Renderer = nullptr;
+		}
+		desc.nWindow = m_Window->GetNativeHandle();
+
+		if (m_ModuleService->GetModule("Renderer"))
+		{
+			m_ModuleService->UnloadModule("Renderer");
+		}
+
+		switch (m_Desc.GraphicsAPI)
+		{
+			case GraphicsAPI::DirectX12:
+			{
+				if (!m_ModuleService->LoadModule(RYNOX_DIRECTX12_MODULE_FILENAME, "Renderer"))
+				{
+					RNX_LOG_ERROR("[Application] Failed to load Renderer Module. (DirectX12)");
+					return false;
+				}
+			} break;
+
+			case GraphicsAPI::OpenGL:
+			{
+				if (!m_ModuleService->LoadModule(RYNOX_OPENGL_MODULE_FILENAME, "Renderer"))
+				{
+					RNX_LOG_ERROR("[Application] Failed to load Renderer Module. (OpenGL)");
+					return false;
+				}
+			} break;
+		}
+
+		IRendererModule* module = dynamic_cast<IRendererModule*>(m_ModuleService->GetModule("Renderer"));
+		if (!module)
+		{
+			RNX_LOG_ERROR("[Application] Failed to cast IModule to IRendererModule.");
+			return false;
+		}
+
+		if (!module->Initialize())
+		{
+			RNX_LOG_ERROR("[Application] Failed to initialized IRendererModule.");
+			return false;
+		}
+
+		if (!module->GetRenderer()->Initialize(desc))
+		{
+			RNX_LOG_ERROR("[Application] Failed to initialize Renderer.");
+			return false;
+		}
+
+		m_Renderer = module->GetRenderer();
+		return true;
+	}
+
+	bool Application::SwitchRenderer(GraphicsAPI api)
+	{
+		m_Desc.GraphicsAPI = api;
+		return ReloadRenderer();
 	}
 }

@@ -1,12 +1,13 @@
 #pragma once
 
-#include <Renderer/DirectX12.h>
+#include <DirectX12.h>
 
-namespace Rynox::Renderer
+namespace Rynox::DirectX12
 {
     class Dx12IndexBuffer
     {
     public:
+        Dx12IndexBuffer() = default;
         Dx12IndexBuffer(
             ID3D12Device14* device,
             ID3D12GraphicsCommandList* cmdList,
@@ -18,6 +19,7 @@ namespace Rynox::Renderer
 
         Dx12IndexBuffer(const Dx12IndexBuffer&) = delete;
         Dx12IndexBuffer& operator=(const Dx12IndexBuffer&) = delete;
+
         Dx12IndexBuffer(Dx12IndexBuffer&&) = default;
         Dx12IndexBuffer& operator=(Dx12IndexBuffer&&) = default;
 
