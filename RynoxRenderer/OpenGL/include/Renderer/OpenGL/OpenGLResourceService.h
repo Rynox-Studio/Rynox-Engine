@@ -20,19 +20,19 @@ namespace Rynox::Renderer::OpenGL
 		template<typename Slot, typename Data, typename Handle>
 		Handle QueueResource(std::vector<Slot>& slots, const Data& data)
 		{
-			uint32_t index = FindFreeSlot(slots);
+			uint32_t id = FindFreeSlot(slots);
 
-			if (index >= slots.size())
+			if (id >= slots.size())
 				slots.emplace_back();
 
-			auto& slot = slots[index];
+			auto& slot = slots[id];
 
 			slot.cpuData = data;
 			slot.active = false;
 			slot.queued = true;
-			slot.generation++;
+			slot.gen++;
 
-			return Handle(index, slot.generation);
+			return Handle(id, slot.gen);
 		}
 
 		MeshHandle QueueMesh(const MeshData& meshData)
@@ -70,12 +70,12 @@ namespace Rynox::Renderer::OpenGL
 		{
 			auto& slots = GetSlotContainer<T, Handle>();
 
-			if (h.index >= slots.size())
+			if (h.id >= slots.size())
 				return nullptr;
 
-			auto& slot = slots[h.index];
+			auto& slot = slots[h.id];
 
-			if (slot.generation != h.generation)
+			if (slot.gen != h.gen)
 				return nullptr;
 
 			if (!slot.active)
@@ -96,9 +96,9 @@ namespace Rynox::Renderer::OpenGL
 		}
 		void ProcessMeshes() 
 		{
-			for (uint32_t index : m_meshQueue)
+			for (uint32_t id : m_meshQueue)
 			{
-				auto& slot = m_meshes[index];
+				auto& slot = m_meshes[id];
 				if (!slot.cpuData.vertices)
 				{
 					RNX_LOG_WARNING("fail load mesh, vertices is nullptr");
@@ -131,9 +131,9 @@ namespace Rynox::Renderer::OpenGL
 		}
 		void ProcessShaders()
 		{
-			for (uint32_t index : m_shaderQueue)
+			for (uint32_t id : m_shaderQueue)
 			{
-				auto& slot = m_shaders[index];
+				auto& slot = m_shaders[id];
 				if (!slot.cpuData.fragCode)
 				{
 					RNX_LOG_WARNING("fail load shader, fragCode is nullptr");
@@ -154,7 +154,7 @@ namespace Rynox::Renderer::OpenGL
 
 				if (newShader.id == OpenGL::INVALID_ID)
 				{
-					RNX_LOG_WARNING("fail create shader Handle (index: {}, generation: {})", index, slot.generation);
+					RNX_LOG_WARNING("fail create shader Handle (id: {}, gen: {})", id, slot.gen);
 					slot.queued = false;
 					continue;
 				}

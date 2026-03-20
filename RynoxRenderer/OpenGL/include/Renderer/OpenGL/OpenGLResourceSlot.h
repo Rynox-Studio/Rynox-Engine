@@ -8,7 +8,7 @@ namespace Rynox::Renderer::OpenGL
     struct OpenGLResourceSlot {
         T resource{};
         Data cpuData{};
-        uint32_t generation = 0;
+        uint32_t gen = 0;
         bool active = false;
         bool queued = false;
     };
