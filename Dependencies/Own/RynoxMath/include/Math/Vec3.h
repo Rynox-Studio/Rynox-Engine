@@ -9,7 +9,6 @@ namespace Rynox::Math
         union
         {
             struct { float x, y, z; };
-            struct { float r, g, b; };
             float data[3];
         };
 

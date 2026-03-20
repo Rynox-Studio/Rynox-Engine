@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "Math/Utility.h"
+
 namespace Rynox::Math
 {
     float Length(const Vec2& v)
@@ -17,7 +19,7 @@ namespace Rynox::Math
     Vec2 Normalize(const Vec2& v)
     {
         float len = Length(v);
-        if (len == 0.0f) return Vec2{ 0,0 };
+        if (len == FLOAT_EPS) return Vec2{ 0,0 };
         return Vec2{ v.x / len, v.y / len };
     }
 
@@ -49,7 +51,7 @@ namespace Rynox::Math
     Vec3 Normalize(const Vec3& v)
     {
         float len = Length(v);
-        if (len == 0.0f) return Vec3{ 0,0,0 };
+        if (len < FLOAT_EPS) return Vec3{ 0,0,0 };
         return Vec3{ v.x / len, v.y / len, v.z / len };
     }
 

@@ -19,10 +19,11 @@ namespace Rynox::Math
         }
 
         constexpr Mat4(
-            float m00, float m01, float m02, float m03,
-            float m10, float m11, float m12, float m13,
-            float m20, float m21, float m22, float m23,
-            float m30, float m31, float m32, float m33)
+            float m00, float m10, float m20, float m30,
+            float m01, float m11, float m21, float m31,
+            float m02, float m12, float m22, float m32,
+            float m03, float m13, float m23, float m33
+        )
             : data{
                 m00, m10, m20, m30,
                 m01, m11, m21, m31,
@@ -61,9 +62,6 @@ namespace Rynox::Math
                 data[3], data[7], data[11], data[15]
             );
         }
-
-        float* operator[](int col) { return &data[col * 4]; }
-        const float* operator[](int col) const { return &data[col * 4]; }
 
         float& operator()(int row, int col) { return data[col * 4 + row]; }
         const float& operator()(int row, int col) const { return data[col * 4 + row]; }

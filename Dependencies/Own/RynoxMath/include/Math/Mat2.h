@@ -43,9 +43,6 @@ namespace Rynox::Math
             );
         }
 
-        float* operator[](int col) { return &data[col * 2]; }
-        const float* operator[](int col) const { return &data[col * 2]; }
-
         float& operator()(int row, int col) { return data[col * 2 + row]; }
         const float& operator()(int row, int col) const { return data[col * 2 + row]; }
 
