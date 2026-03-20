@@ -1,8 +1,11 @@
 #pragma once
 
 #include <Common/Macros.h>
+
 #include <Core/Graphics/GraphicsData.h>
 #include <Core/Graphics/GPUHandle.h>
+#include <Core/Graphics/FrameData.h>
+#include <Core/Graphics/DrawCommand.h>
 
 #include <Math/Vec4.h>
 
@@ -46,19 +49,15 @@ namespace Rynox
 		virtual bool Initialize(const RendererDesc& desc) = 0;
 		virtual const RendererDesc& GetDesc() const = 0;
 
-		virtual void BeginFrame() = 0;
+		virtual void BeginFrame(const Graphics::FrameData& frame) = 0;
+		virtual void Submit(const Graphics::DrawCommand& cmd) = 0;
 		virtual void EndFrame() = 0;
 
 		virtual bool SetOutputSize(uint32_t width, uint32_t height) = 0;
 		virtual void SetViewport(const Viewport& viewport) = 0;
 		virtual void SetClearColor(const Math::Vec4& color) = 0;
 
-		virtual void DrawMesh(Graphics::MeshHandle mesh, Graphics::ShaderHandle shader) = 0;
-
 		virtual Graphics::MeshHandle LoadMesh(const Graphics::MeshData& mesh) = 0;
 		virtual Graphics::ShaderHandle LoadShader(const Graphics::ShaderData& shader) = 0;
 	};
-
-	using CreateRendererFn = IRenderer* (*)();
-	using DestroyRendererFn = void (*)(IRenderer*);
 }
