@@ -85,23 +85,19 @@ namespace Rynox::Core
 		return "";
 	}
 
-	void Win32Window::GetPosition(int* x, int* y) const
+	Math::Vec2 Win32Window::GetPosition() const
 	{
-		if (!m_Handle) return;
-
-		*x = m_Data.x;
-		*y = m_Data.y;
+		if (!m_Handle) return {};
+		return { (float)m_Data.x, (float)m_Data.y };
 	}
 
-	void Win32Window::GetSize(int* width, int* height) const
+	Math::Vec2 Win32Window::GetSize() const
 	{
-		if (!m_Handle) return;
-
-		*width = m_Data.width;
-		*height = m_Data.height;
+		if (!m_Handle) return {};
+		return { (float)m_Data.width, (float)m_Data.height };
 	}
 
-	void Win32Window::SetTitle(const std::string& title)
+	void Win32Window::SetTitle(std::string_view title)
 	{
 		if (!m_Handle) return;
 
@@ -109,18 +105,18 @@ namespace Rynox::Core
 		SetWindowTextW(reinterpret_cast<HWND>(m_Handle), wtitle.c_str());
 	}
 
-	void Win32Window::SetPosition(int x, int y)
+	void Win32Window::SetPosition(Math::Vec2 position)
 	{
 		if (!m_Handle) return;
 
-		SetWindowPos(reinterpret_cast<HWND>(m_Handle), 0, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+		SetWindowPos(reinterpret_cast<HWND>(m_Handle), 0, position.x, position.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
 
-	void Win32Window::SetSize(int width, int height)
+	void Win32Window::SetSize(Math::Vec2 size)
 	{
 		if (!m_Handle) return;
 
-		SetWindowPos(reinterpret_cast<HWND>(m_Handle), 0, 0, 0, width, height, SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+		SetWindowPos(reinterpret_cast<HWND>(m_Handle), 0, 0, 0, size.x, size.y, SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
 
 	void Win32Window::SetEventCallback(std::function<void(IEvent&)> callback)

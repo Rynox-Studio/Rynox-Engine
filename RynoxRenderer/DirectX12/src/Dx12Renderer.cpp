@@ -145,7 +145,7 @@ namespace Rynox::DirectX12
 		return m_Desc;
 	}
 
-	void Dx12Renderer::BeginFrame()
+	void Dx12Renderer::BeginFrame(const Graphics::FrameData& data)
 	{
 		if (!m_Initialized) return;
 
@@ -171,6 +171,10 @@ namespace Rynox::DirectX12
 		m_CmdList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 		m_CmdList->RSSetViewports(1, &m_Viewport);
 		m_CmdList->RSSetScissorRects(1, &m_Scissor);
+	}
+
+	void Dx12Renderer::Submit(const Graphics::DrawCommand& command)
+	{
 	}
 
 	void Dx12Renderer::EndFrame()
@@ -301,79 +305,79 @@ namespace Rynox::DirectX12
 		return { id, m_ShaderPrograms[id].gen };
 	}
 
-	void Dx12Renderer::DrawMesh(const Graphics::MeshHandle mesh, const Graphics::ShaderHandle shader)
-	{
-		if (!m_Initialized) return;
+	//void Dx12Renderer::DrawMesh(const Graphics::MeshHandle mesh, const Graphics::ShaderHandle shader)
+	//{
+	//	if (!m_Initialized) return;
 
-		if (mesh.id >= m_Meshes.size() || m_Meshes[mesh.id].gen != mesh.gen) return;
-		if (shader.id >= m_ShaderPrograms.size() || m_ShaderPrograms[shader.id].gen != shader.gen) return;
+	//	if (mesh.id >= m_Meshes.size() || m_Meshes[mesh.id].gen != mesh.gen) return;
+	//	if (shader.id >= m_ShaderPrograms.size() || m_ShaderPrograms[shader.id].gen != shader.gen) return;
 
-		Dx12Mesh& dxMesh = m_Meshes[mesh.id];
-		Dx12ShaderProgram& dxShader = m_ShaderPrograms[shader.id];
+	//	Dx12Mesh& dxMesh = m_Meshes[mesh.id];
+	//	Dx12ShaderProgram& dxShader = m_ShaderPrograms[shader.id];
 
-		if (!dxShader.Pipeline)
-		{
-			// Rasterizer
-			D3D12_RASTERIZER_DESC rDesc{};
-			rDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
-			rDesc.CullMode = D3D12_CULL_MODE_BACK;
-			rDesc.FrontCounterClockwise = FALSE;
-			rDesc.DepthBias = 0;
-			rDesc.DepthClipEnable = TRUE;
-			rDesc.MultisampleEnable = FALSE;
-			rDesc.AntialiasedLineEnable = FALSE;
+	//	if (!dxShader.Pipeline)
+	//	{
+	//		// Rasterizer
+	//		D3D12_RASTERIZER_DESC rDesc{};
+	//		rDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
+	//		rDesc.CullMode = D3D12_CULL_MODE_BACK;
+	//		rDesc.FrontCounterClockwise = FALSE;
+	//		rDesc.DepthBias = 0;
+	//		rDesc.DepthClipEnable = TRUE;
+	//		rDesc.MultisampleEnable = FALSE;
+	//		rDesc.AntialiasedLineEnable = FALSE;
 
-			// Blend
-			D3D12_BLEND_DESC bDesc{};
-			bDesc.AlphaToCoverageEnable = FALSE;
-			bDesc.IndependentBlendEnable = FALSE;
-			bDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	//		// Blend
+	//		D3D12_BLEND_DESC bDesc{};
+	//		bDesc.AlphaToCoverageEnable = FALSE;
+	//		bDesc.IndependentBlendEnable = FALSE;
+	//		bDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-			// Depth Stencil
-			D3D12_DEPTH_STENCIL_DESC dsDesc{};
-			dsDesc.DepthEnable = TRUE;
-			dsDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-			dsDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
-			dsDesc.StencilEnable = FALSE;
+	//		// Depth Stencil
+	//		D3D12_DEPTH_STENCIL_DESC dsDesc{};
+	//		dsDesc.DepthEnable = TRUE;
+	//		dsDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	//		dsDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	//		dsDesc.StencilEnable = FALSE;
 
-			// PSO
-			D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
-			psoDesc.pRootSignature = m_RootSignature.Get();
+	//		// PSO
+	//		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
+	//		psoDesc.pRootSignature = m_RootSignature.Get();
 
-			psoDesc.VS = dxShader.VertexShader.GetBytecode();
-			psoDesc.PS = dxShader.PixelShader.GetBytecode();
+	//		psoDesc.VS = dxShader.VertexShader.GetBytecode();
+	//		psoDesc.PS = dxShader.PixelShader.GetBytecode();
 
-			psoDesc.InputLayout = { dxMesh.Layout.data(), (UINT)dxMesh.Layout.size() };
+	//		psoDesc.InputLayout = { dxMesh.Layout.data(), (UINT)dxMesh.Layout.size() };
 
-			psoDesc.RasterizerState = rDesc;
+	//		psoDesc.RasterizerState = rDesc;
 
-			psoDesc.BlendState = bDesc;
-			psoDesc.SampleMask = UINT_MAX;
+	//		psoDesc.BlendState = bDesc;
+	//		psoDesc.SampleMask = UINT_MAX;
 
-			psoDesc.DepthStencilState = dsDesc;
+	//		psoDesc.DepthStencilState = dsDesc;
 
-			psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-			psoDesc.NumRenderTargets = 1;
-			psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-			psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-			psoDesc.SampleDesc.Count = 1;
-			psoDesc.SampleDesc.Quality = 0;
+	//		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	//		psoDesc.NumRenderTargets = 1;
+	//		psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//		psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	//		psoDesc.SampleDesc.Count = 1;
+	//		psoDesc.SampleDesc.Quality = 0;
 
-			HRESULT hr = m_Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&dxShader.Pipeline));
-			if (FAILED(hr))
-			{
-				RNX_LOG_ERROR("[DirectX12] Failed to create Pipeline State Object.");
-			}
-		}
+	//		HRESULT hr = m_Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&dxShader.Pipeline));
+	//		if (FAILED(hr))
+	//		{
+	//			RNX_LOG_ERROR("[DirectX12] Failed to create Pipeline State Object.");
+	//		}
+	//	}
 
-		m_CmdList->SetPipelineState(dxShader.Pipeline.Get());
-		m_CmdList->SetGraphicsRootSignature(m_RootSignature.Get());
+	//	m_CmdList->SetPipelineState(dxShader.Pipeline.Get());
+	//	m_CmdList->SetGraphicsRootSignature(m_RootSignature.Get());
 
-		Math::Mat4 mvp = Math::Mat4::Identity();
-		m_CmdList->SetGraphicsRoot32BitConstants(0, 16, &mvp, 0);
-		m_CmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//	Math::Mat4 mvp = Math::Mat4::Identity();
+	//	m_CmdList->SetGraphicsRoot32BitConstants(0, 16, &mvp, 0);
+	//	m_CmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		dxMesh.Bind(m_CmdList);
-		m_CmdList->DrawIndexedInstanced(dxMesh.IndexBuffer.GetIndexCount(), 1, 0, 0, 0);
-	}
+	//	dxMesh.Bind(m_CmdList);
+	//	m_CmdList->DrawIndexedInstanced(dxMesh.IndexBuffer.GetIndexCount(), 1, 0, 0, 0);
+	//}
 }

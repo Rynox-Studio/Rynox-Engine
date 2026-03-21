@@ -2,9 +2,9 @@
 
 #include <string>
 #include <functional>
-#include <memory>
 
-#include "Events/IEvent.h"
+#include <Core/Events/IEvent.h>
+#include <Math/Vec2.h>
 
 namespace Rynox::Core 
 {
@@ -12,9 +12,9 @@ namespace Rynox::Core
 
 	struct WindowDesc 
 	{
-		std::string Title = "Rynox";
-		int Position[2] = { 0, 0 };
-		int Size[2] = { 1280, 720 };
+		std::string Title = "Rynox Window";
+		Math::Vec2 Position{ 0, 0 };
+		Math::Vec2 Size{ 1280, 720 };
 
 		bool Show = true;
 		bool Focus = true;
@@ -22,23 +22,20 @@ namespace Rynox::Core
 		std::function<void(IEvent&)> EventCallback = nullptr;
 	};
 
-	class IWindow 
+	class IWindow
 	{
-	public:
-		[[nodiscard]] static IWindow* Create();
-
 	public:
 		virtual ~IWindow() = default;
 
 		[[nodiscard]] virtual bool Initialize(const WindowDesc& desc) = 0;
 
 		[[nodiscard]] virtual std::string GetTitle() const = 0;
-		virtual void GetPosition(int* x, int* y) const = 0;
-		virtual void GetSize(int* width, int* height) const = 0;
+		virtual Math::Vec2 GetPosition() const = 0;
+		virtual Math::Vec2 GetSize() const = 0;
 
-		virtual void SetTitle(const std::string& title) = 0;
-		virtual void SetPosition(int x, int y) = 0;
-		virtual void SetSize(int width, int height) = 0;
+		virtual void SetTitle(std::string_view title) = 0;
+		virtual void SetPosition(Math::Vec2 position) = 0;
+		virtual void SetSize(Math::Vec2 size) = 0;
 		virtual void SetEventCallback(std::function<void(IEvent&)> callback) = 0;
 
 		virtual void PollEvents() = 0;

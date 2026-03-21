@@ -19,12 +19,12 @@ namespace Rynox::Core
 		bool Initialize(const WindowDesc& desc) override;
 
 		std::string GetTitle() const override;
-		void GetPosition(int* x, int* y) const override;
-		void GetSize(int* width, int* height) const override;
+		Math::Vec2 GetPosition() const override;
+		Math::Vec2 GetSize() const override;
 
-		void SetTitle(const std::string& title) override;
-		void SetPosition(int x, int y) override;
-		void SetSize(int width, int height) override;
+		void SetTitle(std::string_view title) override;
+		void SetPosition(Math::Vec2 position) override;
+		void SetSize(Math::Vec2 size) override;
 		void SetEventCallback(std::function<void(IEvent&)> callback) override;
 
 		void PollEvents() override;

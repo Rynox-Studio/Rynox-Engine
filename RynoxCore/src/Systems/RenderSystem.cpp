@@ -22,7 +22,7 @@ namespace Rynox::Core::System
 		if (!m_renderer)
 			return;
 
-		m_renderer->BeginFrame();
+		m_renderer->BeginFrame({});
 		m_renderer->EndFrame();
 	}
 }

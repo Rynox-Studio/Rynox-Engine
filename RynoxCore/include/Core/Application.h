@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 #include <Core/Graphics/IRenderer.h>
 #include <Core/LayerStack.h>

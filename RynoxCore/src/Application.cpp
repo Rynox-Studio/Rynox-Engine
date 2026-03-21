@@ -9,6 +9,8 @@
 #include <Core/Interfaces/IRendererModule.h>
 #include <Core/Graphics/IRenderer.h>
 
+#include <Core/Platform.h>
+
 namespace Rynox::Core
 {
 	Application* Application::s_Instance = nullptr;
@@ -40,7 +42,7 @@ namespace Rynox::Core
 
 		m_Desc = desc;
 
-		m_Window = std::unique_ptr<IWindow>(IWindow::Create());
+		m_Window = std::unique_ptr<IWindow>(Platform::CreateWindow());
 		{
 			WindowDesc wndDesc;
 			wndDesc.Title = desc.Name;
@@ -73,15 +75,14 @@ namespace Rynox::Core
 
 		// Renderer
 		{
-			int width, height;
-			m_Window->GetSize(&width, &height);
+			auto size = m_Window->GetSize();
 
 			RendererDesc rendererDesc;
 			rendererDesc.nWindow = m_Window->GetNativeHandle();
 			rendererDesc.nDisplay = nullptr;
-			rendererDesc.viewport = { 0, 0, (uint32_t)width, (uint32_t)height };
-			rendererDesc.outputWidth = (uint32_t)width;
-			rendererDesc.outputHeight = (uint32_t)height;
+			rendererDesc.viewport = { 0, 0, (uint32_t)size.x, (uint32_t)size.y };
+			rendererDesc.outputWidth = (uint32_t)size.x;
+			rendererDesc.outputHeight = (uint32_t)size.y;
 
 			if (!m_Renderer->Initialize(rendererDesc))
 			{
@@ -175,7 +176,7 @@ namespace Rynox::Core
 
 			if (m_Renderer)
 			{
-				m_Renderer->BeginFrame();
+				m_Renderer->BeginFrame({});
 				for (auto& layer : m_LayerStack)
 				{
 					layer->OnRender();
