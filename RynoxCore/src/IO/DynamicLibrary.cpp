@@ -1,4 +1,4 @@
-#include "Core/IO/DynamicLibrary.h"
+#include <Platform/DynamicLibrary.h>
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -7,7 +7,7 @@
 #include <dlfcn.h>
 #endif
 
-namespace Rynox::Core::IO
+namespace Rynox::IO
 {
     LibHandle DynamicLibrary::Load(const std::string& path)
     {
