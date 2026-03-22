@@ -144,4 +144,32 @@ namespace Rynox::Common
 
 		mutable T* m_Instance = nullptr;
 	};
+
+	template<RefCountedType T>
+	class WeakRef
+	{
+	public:
+		WeakRef() = default;
+		WeakRef(std::nullptr_t) : m_Instance(nullptr) {}
+		WeakRef(const Ref<T> ref) : m_Instance(ref.Get()) {}
+
+		[[nodiscard]] bool IsValid() const
+		{
+			return m_Instance != nullptr && m_Instance->GetRefCount() > 0;
+		}
+
+		[[nodiscard]] Ref<T> Lock()
+		{
+			if (IsValid())
+			{
+				return Ref<T>(m_Instance);
+			}
+			return nullptr;
+		}
+
+		void Reset() { m_Instance = nullptr; }
+
+	private:
+		T* m_Instance = nullptr;
+	};
 }

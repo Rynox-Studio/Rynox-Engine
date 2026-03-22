@@ -246,7 +246,7 @@ namespace Rynox::Common
 		{
 			if (Contains(id))
 			{
-				return m_Container[m_Sparse[id]];
+				return m_Container + m_Sparse[id];
 			}
 			return nullptr;
 		}
@@ -255,7 +255,7 @@ namespace Rynox::Common
 		{
 			if (Contains(id))
 			{
-				return m_Container[m_Sparse[id]];
+				return m_Container + m_Sparse[id];
 			}
 			return nullptr;
 		}
