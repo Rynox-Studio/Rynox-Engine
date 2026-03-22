@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace Rynox::Graphics
+namespace Rynox
 {
     enum class ShaderDataType
     {

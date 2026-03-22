@@ -3,7 +3,7 @@
 #include <string>
 #include "ShaderDataType.h"
 
-namespace Rynox::Graphics
+namespace Rynox
 {
 	struct VertexElement
 	{

@@ -1,4 +1,4 @@
-#include "Core/Systems/RenderSystem.h"
+#include <Rendering/RenderSystem.h>
 
 namespace Rynox
 {
