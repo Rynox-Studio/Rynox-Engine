@@ -21,9 +21,10 @@ namespace Rynox::Common
 	};
 
     template<typename T>
-    concept RefCountedType = std::derived_from<T, RefCounted>;
+    concept RefCountedConcept = std::derived_from<T, RefCounted>;
 
-    template<RefCountedType T>
+    template<typename T>
+	requires RefCountedConcept<T>
 	class Ref
 	{
 	public:
@@ -34,7 +35,7 @@ namespace Rynox::Common
 		Ref(T* instance) : m_Instance(instance) { IncRef(); }
 
 		template<typename T2>
-		requires(std::is_base_of_v<T2, T> || std::is_base_of_v<T, T2>)
+		requires(std::convertible_to<T*, T2*> || std::convertible_to<T2*, T*>)
 		Ref(const Ref<T2>& other)
 		{
 			m_Instance = static_cast<T*>(other.m_Instance);
@@ -42,7 +43,7 @@ namespace Rynox::Common
 		}
 
 		template<typename T2>
-		requires(std::is_base_of_v<T2, T> || std::is_base_of_v<T, T2>)
+		requires(std::convertible_to<T*, T2*> || std::convertible_to<T2*, T*>)
 		Ref(Ref<T2>&& other) noexcept
 		{
 			m_Instance = static_cast<T*>(other.m_Instance);
@@ -83,6 +84,7 @@ namespace Rynox::Common
 		}
 
 		template<typename T2>
+		requires(std::convertible_to<T*, T2*>)
 		[[nodiscard]] Ref<T2> As() const
 		{
 			return Ref<T2>(dynamic_cast<T2*>(m_Instance));
@@ -133,25 +135,26 @@ namespace Rynox::Common
 				if (m_Instance->GetRefCount() == 0)
 				{
 					delete m_Instance;
-					m_Instance = nullptr;
 				}
+				m_Instance = nullptr;
 			}
 		}
 
 	private:
-		template<typename T2>
+		template<typename>
 		friend class Ref;
 
 		mutable T* m_Instance = nullptr;
 	};
 
-	template<RefCountedType T>
+	template<typename T>
+	requires RefCountedConcept<T>
 	class WeakRef
 	{
 	public:
 		WeakRef() = default;
 		WeakRef(std::nullptr_t) : m_Instance(nullptr) {}
-		WeakRef(const Ref<T> ref) : m_Instance(ref.Get()) {}
+		WeakRef(const Ref<T>& ref) : m_Instance(ref.Get()) {}
 
 		[[nodiscard]] bool IsValid() const
 		{

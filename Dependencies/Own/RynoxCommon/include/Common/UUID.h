@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 
 namespace Rynox::Common
 {
@@ -15,5 +16,17 @@ namespace Rynox::Common
 
 	private:
 		uint64_t m_UUID;
+	};
+}
+
+namespace std
+{
+	template<>
+	struct hash<Rynox::Common::UUID>
+	{
+		size_t operator()(const Rynox::Common::UUID& uuid) const noexcept
+		{
+			return (uint64_t)uuid;
+		}
 	};
 }
