@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IRenderer.h"
-#include "Core/ISystem.h"
+#include "Base/ISystem.h"
 
 namespace Rynox
 {

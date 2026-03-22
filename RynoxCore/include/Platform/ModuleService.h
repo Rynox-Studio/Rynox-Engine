@@ -4,8 +4,8 @@
 #include <string>
 
 #include "Platform/DynamicLibrary.h"
-#include "Core/IModule.h"
-#include "Core/IService.h"
+#include "Base/IModule.h"
+#include "Base/IService.h"
 
 namespace Rynox
 {

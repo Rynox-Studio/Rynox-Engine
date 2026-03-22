@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/IModule.h"
+#include "Base/IModule.h"
 #include "Rendering/IRenderer.h"
 
 namespace Rynox {
