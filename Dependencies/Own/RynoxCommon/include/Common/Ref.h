@@ -141,7 +141,8 @@ namespace Rynox::Common
 		}
 
 	private:
-		template<typename>
+		template<typename T2>
+		requires RefCountedConcept<T2>
 		friend class Ref;
 
 		mutable T* m_Instance = nullptr;

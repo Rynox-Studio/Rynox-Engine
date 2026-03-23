@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Event/IEvent.h>
+
 namespace Rynox
 {
 	class ISystem
@@ -7,7 +9,10 @@ namespace Rynox
 	public:
 		virtual ~ISystem() = default;
 
-		virtual bool Initialize() noexcept(true) = 0;
-		virtual void OnUpdate(float dt, float time) = 0;
+		virtual void OnAttach() {}
+		virtual void OnDetach() {}
+
+		virtual void OnUpdate(float dt) {}
+		virtual void OnEvent(IEvent& event) {}
 	};
 }

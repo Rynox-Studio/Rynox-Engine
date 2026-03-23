@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include <string>
 
-#include "Platform/DynamicLibrary.h"
 #include "Base/IModule.h"
 #include "Base/IService.h"
 
@@ -12,18 +11,20 @@ namespace Rynox
     class ModuleService : public IService
     {
     public:
-        ~ModuleService();
+        ~ModuleService() override { Shutdown(); }
 
-        bool Initialize() noexcept(true);
+        bool Initialize() override;
+        void Shutdown() override;
 
         bool LoadModule(const std::string& path, const std::string& name);
         bool UnloadModule(const std::string& name);
 
         IModule* GetModule(const std::string& name);
     private:
-        struct ModuleInfo {
-            LibHandle handle;
-            IModule* instance;
+        struct ModuleInfo 
+        {
+            void* Library;
+            IModule* Instance;
         };
 
         std::unordered_map<std::string, ModuleInfo> m_modules;

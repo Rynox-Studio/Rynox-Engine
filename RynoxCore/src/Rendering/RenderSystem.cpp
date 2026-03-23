@@ -6,23 +6,27 @@ namespace Rynox
 	{
 		m_renderer = r;
 	}
+
 	IRenderer* RenderSystem::GetRenderer() const
 	{
 		return m_renderer;
 	}
-	bool RenderSystem::Initialize() noexcept(true)
-	{
-		if (!m_renderer)
-			return false;
 
-		return true;
+	void RenderSystem::OnAttach()
+	{
 	}
-	void RenderSystem::OnUpdate(float dt, float time)
-	{
-		if (!m_renderer)
-			return;
 
+	void RenderSystem::OnDetach()
+	{
+	}
+
+	void RenderSystem::OnUpdate(float dt)
+	{
 		m_renderer->BeginFrame({});
 		m_renderer->EndFrame();
+	}
+
+	void RenderSystem::OnEvent(IEvent& event)
+	{
 	}
 }

@@ -1,38 +1,41 @@
 #include "Platform/ModuleService.h"
 
+#include <Platform/Platform.h>
 #include <Common/Logger.h>
 
 namespace Rynox
 {
-	ModuleService::~ModuleService()
+	bool ModuleService::Initialize()
+	{
+		return true;
+	}
+
+	void ModuleService::Shutdown()
 	{
 		for (auto& [name, info] : m_modules)
 		{
-			if (info.instance)
+			if (info.Instance)
 			{
-				info.instance->Shutdown();
+				info.Instance->Shutdown();
 			}
 
 			using DestroyFn = void (*)(IModule*);
 			auto destroy = reinterpret_cast<DestroyFn>(
-				IO::DynamicLibrary::GetSymbol(info.handle, "DestroyModule")
-			);
+				Platform::GetSymbol(info.Library, "DestroyModule")
+				);
 			if (destroy)
-				destroy(info.instance);
+				destroy(info.Instance);
 
-			IO::DynamicLibrary::UnLoad(info.handle);
+			Platform::UnloadLibrary(info.Library);
 		}
 
 		m_modules.clear();
 	}
-	bool ModuleService::Initialize() noexcept(true)
-	{
-		return true;
-	}
+
 	bool ModuleService::LoadModule(const std::string& path, const std::string& name)
 	{
-		LibHandle handle = IO::DynamicLibrary::Load(path);
-		if (!handle)
+		void* library = Platform::LoadLibrary(path);
+		if (!library)
 		{
 			RNX_LOG_ERROR("Failed to load module from {}", path);
 			return false;
@@ -40,7 +43,7 @@ namespace Rynox
 
 		using CreateFn = IModule * (*)();
 		auto create = reinterpret_cast<CreateFn>(
-			IO::DynamicLibrary::GetSymbol(handle, "CreateModule")
+			Platform::GetSymbol(library, "CreateModule")
 		);
 		if (!create)
 		{
@@ -56,7 +59,7 @@ namespace Rynox
 		}
 
 		module->Initialize();
-		m_modules[name] = {handle, module};
+		m_modules[name] = { library, module};
 		return true;
 	}
 	bool ModuleService::UnloadModule(const std::string& name)
@@ -65,34 +68,33 @@ namespace Rynox
 		if (it == m_modules.end())
 			return false;
 
-		if (!it->second.instance)
+		if (!it->second.Instance)
 			return false;
 
-		it->second.instance->Shutdown();
+		it->second.Instance->Shutdown();
 
 		using DestroyFn = void (*)(IModule*);
 		auto destroy = reinterpret_cast<DestroyFn>(
-			IO::DynamicLibrary::GetSymbol(it->second.handle, "DestroyModule")
+			Platform::GetSymbol(it->second.Library, "DestroyModule")
 			);
 
 		if (!destroy)
 			return false;
 
-		destroy(it->second.instance);
+		destroy(it->second.Instance);
 
-		if (!IO::DynamicLibrary::UnLoad(it->second.handle))
-			return false;
-
+		Platform::UnloadLibrary(it->second.Library);
 		m_modules.erase(it);
 
 		return true;
 	}
+
 	IModule* ModuleService::GetModule(const std::string& name)
 	{
 		auto it = m_modules.find(name);
 		if (it != m_modules.end())
 		{
-			return it->second.instance;
+			return it->second.Instance;
 		}
 		return nullptr;
 	}

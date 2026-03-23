@@ -5,7 +5,7 @@
 
 #include <Common/Macros.h>
 
-namespace Rynox::Core
+namespace Rynox
 {
 	enum class EventType 
 	{

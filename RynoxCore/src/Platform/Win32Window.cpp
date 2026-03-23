@@ -2,11 +2,11 @@
 
 #include <Common/Logger.h>
 
-#include "Event/WindowEvents.h"
-#include "Event/KeyEvents.h"
-#include "Event/MouseEvents.h"
+#include "Event/WindowEvent.h"
+#include "Event/KeyEvent.h"
+#include "Event/MouseEvent.h"
 
-namespace Rynox::Core 
+namespace Rynox
 {
 	static int s_WindowCount = 0;
 	const wchar_t* WINDOW_CLASS_NAME = L"RynoxWindow";

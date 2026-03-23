@@ -8,18 +8,21 @@ namespace Rynox
 	class RenderSystem final : public ISystem
 	{
 	public:
+		RenderSystem() = default;
 		RenderSystem(IRenderer* r) : m_renderer(r)
 		{
 		}
-	public:
+
 		void SetRenderer(IRenderer* r);
-
 		IRenderer* GetRenderer() const;
-	public:
-		bool Initialize() noexcept(true) override;
 
-		void OnUpdate(float dt, float time) override;
+		void OnAttach() override;
+		void OnDetach() override;
+
+		void OnUpdate(float dt) override;
+		void OnEvent(IEvent& event) override;
+
 	private:
-		IRenderer* m_renderer;
+		IRenderer* m_renderer = nullptr;
 	};
 }

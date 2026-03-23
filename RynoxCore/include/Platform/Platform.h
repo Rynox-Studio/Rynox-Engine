@@ -6,7 +6,7 @@
 #include <Math/Vec2.h>
 #include "IWindow.h"
 
-namespace Rynox::Core::Platform
+namespace Rynox::Platform
 {
 	//
 	// System Info

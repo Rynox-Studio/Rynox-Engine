@@ -1,5 +1,5 @@
-#include <Core/Application.h>
-using namespace Rynox::Core;
+#include <App/Application.h>
+using namespace Rynox;
 
 #include <Common/Logger.h>
 

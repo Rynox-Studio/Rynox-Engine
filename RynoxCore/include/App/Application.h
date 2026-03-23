@@ -10,15 +10,14 @@
 #include <Rendering/RenderSystem.h>
 
 #include <Event/IEvent.h>
-#include <Event/WindowEvents.h>
-#include <Event/KeyEvents.h>
+#include <Event/WindowEvent.h>
+#include <Event/KeyEvent.h>
 
-namespace Rynox::Core
+namespace Rynox
 {
 	struct ApplicationDesc
 	{
 		std::string Name = "Rynox Application";
-		GraphicsAPI GraphicsAPI = GraphicsAPI::Default;
 	};
 
 	class Application
@@ -30,6 +29,7 @@ namespace Rynox::Core
 		static Application& Get();
 
 		bool Initialize(const ApplicationDesc& desc);
+
 		void Run();
 		void Stop();
 
@@ -37,41 +37,22 @@ namespace Rynox::Core
 
 		const ApplicationDesc& GetDesc() const;
 
-		// LayerStack
-
-		void PushLayer(ILayer* layer);
-		void PushOverlay(ILayer* overlay);
-
-		void PopLayer(ILayer* layer);
-		void PopOverlay(ILayer* overlay);
-
-		// Other
-
-		IWindow* Window();
-		IRenderer* Renderer();
+		IWindow* Window() { return m_Window; }
+		IRenderer* Renderer() { return m_Renderer; }
 
 	private:
-		bool InitServices();
-		bool InitSystems();
-		bool InitModules();
-
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 		bool OnKeyDown(KeyDownEvent& e);
-
-		bool ReloadRenderer();
-		bool SwitchRenderer(GraphicsAPI api);
 
 	private:
 		ApplicationDesc m_Desc;
 		bool m_Initialized = false;
 		bool m_Running = false;
 
-		LayerStack m_LayerStack;
-
-		std::unique_ptr<IWindow> m_Window;
-		std::unique_ptr<ModuleService> m_ModuleService;
-		std::unique_ptr<RenderSystem> m_RenderSystem;
+		IWindow* m_Window = nullptr;
+		ModuleService* m_ModuleService = nullptr;
+		RenderSystem* m_RenderSystem = nullptr;
 		IRenderer* m_Renderer = nullptr;
 
 		static Application* s_Instance;

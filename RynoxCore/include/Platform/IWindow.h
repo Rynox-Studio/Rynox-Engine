@@ -6,7 +6,7 @@
 #include <Event/IEvent.h>
 #include <Math/Vec2.h>
 
-namespace Rynox::Core 
+namespace Rynox
 {
 	class IWindow;
 

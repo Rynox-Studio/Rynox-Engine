@@ -32,7 +32,7 @@ namespace
 #endif
 }
 
-namespace Rynox::Core::Platform
+namespace Rynox::Platform
 {
 	uint32_t GetLogicalCoreCount()
 	{

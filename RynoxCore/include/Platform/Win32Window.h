@@ -8,7 +8,7 @@
 
 #include "IWindow.h"
 
-namespace Rynox::Core 
+namespace Rynox
 {
 	class Win32Window : public IWindow 
 	{

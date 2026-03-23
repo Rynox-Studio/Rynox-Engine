@@ -2,7 +2,7 @@
 
 #include "IEvent.h"
 
-namespace Rynox::Core
+namespace Rynox
 {
 	class WindowEvent : public IEvent
 	{
