@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IEvent.h"
+#include <Math/Vec2.h>
 
 namespace Rynox
 {
@@ -15,33 +16,29 @@ namespace Rynox
 	class WindowMoveEvent : public WindowEvent
 	{
 	public:
-		WindowMoveEvent(int x, int y)
-			: m_X(x)
-			, m_Y(y) {}
+		WindowMoveEvent(Math::Vec2 position)
+			: m_Position(position) {}
 
-		[[nodiscard]] int GetX() const { return m_X; }
-		[[nodiscard]] int GetY() const { return m_Y; }
+		[[nodiscard]] Math::Vec2 GetPosition() const { return m_Position; }
 
 		RNX_EVENT_CLASS_TYPE(WindowMove);
 		RNX_EVENT_CLASS_CATEGORY(EventCategoryWindow);
 	private:
-		int m_X, m_Y;
+		Math::Vec2 m_Position;
 	};
 
 	class WindowResizeEvent : public WindowEvent
 	{
 	public:
-		WindowResizeEvent(int width, int height)
-			: m_Width(width)
-			, m_Height(height) {}
+		WindowResizeEvent(Math::Vec2 size)
+			: m_Size(size) {}
 
-		[[nodiscard]] int GetWidth() const { return m_Width; }
-		[[nodiscard]] int GetHeight() const { return m_Height; }
+		[[nodiscard]] Math::Vec2 GetSize() const { return m_Size; }
 
 		RNX_EVENT_CLASS_TYPE(WindowResize);
 		RNX_EVENT_CLASS_CATEGORY(EventCategoryWindow);
 	private:
-		int m_Width, m_Height;
+		Math::Vec2 m_Size;
 	};
 
 	class WindowCloseEvent : public WindowEvent

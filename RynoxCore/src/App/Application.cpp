@@ -88,6 +88,20 @@ namespace Rynox
 		d.Dispatch<WindowCloseEvent>(RNX_BIND_EVENT_FN(OnWindowClose));
 	}
 
+	void Application::RemoveLayer(ILayer* layer)
+	{
+		uint32_t i = 0;
+		for (auto& it : m_LayerStack)
+		{
+			if (layer == it)
+			{
+				m_LayerStack.Remove(i);
+				break;
+			}
+			i++;
+		}
+	}
+
 	bool Application::OnWindowClose(WindowCloseEvent& e)
 	{
 		Stop();
@@ -97,8 +111,9 @@ namespace Rynox
 
 	bool Application::OnWindowResize(WindowResizeEvent& e)
 	{
-		int width = e.GetWidth();
-		int height = e.GetHeight();
+		Math::Vec2 size = e.GetSize();
+
+		RNX_LOG_INFO("Resize: ({}, {})", size.x, size.y);
 
 		return false;
 	}

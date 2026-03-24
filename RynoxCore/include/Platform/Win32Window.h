@@ -47,12 +47,18 @@ namespace Rynox
 
 		struct WindowData 
 		{
-			int x = 0, y = 0;
-			int width = 0, height = 0;
+			Math::Vec2 position;
+			Math::Vec2 size;
+			Math::Vec2 mouse_pos;
+			Math::Vec2 mouse_pos_last;
+			Math::Vec2 scroll_delta;
+			bool moved = false;
+			bool resized = false;
+			bool mouse_moved = false;
 
-			int mouse_last_x = 0, mouse_last_y = 0;
 			bool shown = false;
 			bool should_close = false;
+
 			std::function<void(IEvent&)> callback = nullptr;
 		};
 		WindowData m_Data;

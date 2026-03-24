@@ -7,49 +7,43 @@ namespace Rynox
 	class MouseEvent : public IEvent 
 	{
 	public:
-		[[nodiscard]] int GetX() const { return m_X; }
-		[[nodiscard]] int GetY() const { return m_Y; }
+		[[nodiscard]] Math::Vec2 GetPosition() const { return m_Position; }
 
 	protected:
-		MouseEvent(int x, int y)
-			: m_X(x)
-			, m_Y(y) {}
+		MouseEvent(Math::Vec2 position)
+			: m_Position(position) {}
 
-		int m_X, m_Y;
+		Math::Vec2 m_Position;
 	};
 
 	class MouseMoveEvent : public MouseEvent
 	{
 	public:
-		MouseMoveEvent(int x, int y, int dx, int dy)
-			: MouseEvent(x, y)
-			, m_DeltaX(dx)
-			, m_DeltaY(dy) {}
+		MouseMoveEvent(Math::Vec2 position, Math::Vec2 delta)
+			: MouseEvent(position)
+			, m_Delta(delta) {}
 
-		[[nodiscard]]int GetDeltaX() const { return m_DeltaX; }
-		[[nodiscard]]int GetDeltaY() const { return m_DeltaY; }
+		[[nodiscard]] Math::Vec2 GetDelta() const { return m_Delta; }
 
 		RNX_EVENT_CLASS_TYPE(MouseMove);
 		RNX_EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse);
 	private:
-		int m_DeltaX, m_DeltaY;
+		Math::Vec2 m_Delta;
 	};
 
 	class MouseScrollEvent : public MouseEvent
 	{
 	public:
-		MouseScrollEvent(int x, int y, float scroll_x, float scroll_y)
-			: MouseEvent(x, y)
-			, m_ScrollX(scroll_x)
-			, m_ScrollY(scroll_y) {}
+		MouseScrollEvent(Math::Vec2 position, Math::Vec2 scroll)
+			: MouseEvent(position)
+			, m_Scroll(scroll) {}
 
-		[[nodiscard]] float GetScrollX() const { return m_ScrollX; }
-		[[nodiscard]] float GetScrollY() const { return m_ScrollX; }
+		[[nodiscard]] Math::Vec2 GetScroll() const { return m_Scroll; }
 
 		RNX_EVENT_CLASS_TYPE(MouseScroll);
 		RNX_EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse);
 	private:
-		float m_ScrollX, m_ScrollY;
+		Math::Vec2 m_Scroll;
 	};
 
 	class MouseButtonEvent : public MouseEvent
@@ -58,8 +52,8 @@ namespace Rynox
 		[[nodiscard]] int GetButton() const { return m_Button; }
 
 	protected:
-		MouseButtonEvent(int x, int y, int button)
-			: MouseEvent(x, y)
+		MouseButtonEvent(Math::Vec2 position, int button)
+			: MouseEvent(position)
 			, m_Button(button) {}
 
 		int m_Button;
@@ -68,8 +62,8 @@ namespace Rynox
 	class MouseButtonDownEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonDownEvent(int x, int y, int button)
-			: MouseButtonEvent(x, y, button) {}
+		MouseButtonDownEvent(Math::Vec2 position, int button)
+			: MouseButtonEvent(position, button) {}
 
 		RNX_EVENT_CLASS_TYPE(MouseButtonDown);
 		RNX_EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouseButton);
@@ -78,8 +72,8 @@ namespace Rynox
 	class MouseButtonUpEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonUpEvent(int x, int y, int button)
-			: MouseButtonEvent(x, y, button) {}
+		MouseButtonUpEvent(Math::Vec2 position, int button)
+			: MouseButtonEvent(position, button) {}
 
 		RNX_EVENT_CLASS_TYPE(MouseButtonUp);
 		RNX_EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouseButton);

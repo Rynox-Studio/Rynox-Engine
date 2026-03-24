@@ -1,46 +1,54 @@
 #pragma once
 
-#include <vector>
 #include <cstdint>
+#include <memory>
 
 #include "ILayer.h"
 
-namespace Rynox::Core 
+namespace Rynox
 {
-	class LayerStack 
+	class LayerStack
 	{
 	public:
-		using size_type = uint32_t;
+		using value_type = ILayer*;
 
-		using iterator = std::vector<ILayer*>::iterator;
-		using reverse_iterator = std::vector<ILayer*>::reverse_iterator;
-		using const_iterator = std::vector<ILayer*>::const_iterator;
-		using const_reverse_iterator = std::vector<ILayer*>::const_reverse_iterator;
-
-	public:
-		LayerStack();
+		LayerStack() = default;
 		~LayerStack();
 
-		void PushLayer(ILayer* layer);
-		void PushOverlay(ILayer* overlay);
+		LayerStack(const LayerStack&) = delete;
+		LayerStack& operator=(const LayerStack&) = delete;
 
-		void PopLayer(ILayer* layer);
-		void PopOverlay(ILayer* overlay);
+		value_type& Insert(uint32_t index, value_type layer);
+		value_type& PushBack(value_type layer);
 
-		iterator begin();
-		iterator end();
-		const_iterator begin() const;
-		const_iterator end() const;
+		void Remove(uint32_t index);
 
-		reverse_iterator rbegin();
-		reverse_iterator rend();
-		const_reverse_iterator rbegin() const;
-		const_reverse_iterator rend() const;
+		value_type Get(uint32_t index);
+		const value_type Get(uint32_t index) const;
 
-		void Cleanup();
+		value_type* begin() { return m_Ptr; }
+		const value_type* begin() const { return m_Ptr; }
+		const value_type* cbegin() const { return begin(); }
+
+		value_type* end() { return m_Ptr + m_Capacity; }
+		const value_type* end() const { return m_Ptr + m_Capacity; }
+		const value_type* cend() const { return end(); }
+
+		uint32_t Capacity() const { return m_Capacity; }
+		uint32_t PushIndex() const { return m_PushIndex; }
 
 	private:
-		std::vector<ILayer*> m_Layers;
-		uint32_t m_LayerInsertIndex = 0;
+		using Alloc = std::allocator<value_type>;
+		using Traits = std::allocator_traits<Alloc>;
+
+		void Reallocate(uint32_t desired);
+		void DestroyAt(uint32_t index);
+
+	private:
+		Alloc m_Alloc;
+
+		value_type* m_Ptr = nullptr;
+		uint32_t m_Capacity = 0;
+		uint32_t m_PushIndex = 0;
 	};
 }

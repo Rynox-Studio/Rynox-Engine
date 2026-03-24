@@ -1,91 +1,85 @@
 #include <App/LayerStack.h>
 
-namespace Rynox::Core 
-{
-	LayerStack::LayerStack()
-	{
-	}
+#include <Common/Assert.h>
 
+
+namespace Rynox
+{
 	LayerStack::~LayerStack()
 	{
-		for (auto& layer : m_Layers)
+		if (m_Ptr)
 		{
-			layer->OnDetach();
-			delete layer;
+			for (uint32_t i = 0; i < m_Capacity; i++)
+			{
+				DestroyAt(i);
+			}
+
+			Traits::deallocate(m_Alloc, m_Ptr, m_Capacity);
+			m_Ptr = nullptr;
 		}
 	}
 
-	void LayerStack::PushLayer(ILayer* layer)
+	LayerStack::value_type& LayerStack::Insert(uint32_t index, value_type layer)
 	{
-		m_Layers.emplace(m_Layers.begin() + m_LayerInsertIndex, layer);
-		layer->OnAttach();
-		m_LayerInsertIndex++;
-	}
-
-	void LayerStack::PushOverlay(ILayer* overlay)
-	{
-		m_Layers.emplace_back(overlay);
-		overlay->OnAttach();
-	}
-
-	void LayerStack::PopLayer(ILayer* layer)
-	{
-		auto it = std::find(m_Layers.begin(), m_Layers.begin() + m_LayerInsertIndex, layer);
-		if (it != m_Layers.begin() + m_LayerInsertIndex)
+		if (m_Capacity <= index)
 		{
-			layer->OnDetach();
-			m_Layers.erase(it);
-			m_LayerInsertIndex--;
+			Reallocate(index + 1);
+		}
+
+		DestroyAt(index);
+		m_Ptr[index] = layer;
+
+		return m_Ptr[index];
+	}
+
+	LayerStack::value_type& LayerStack::PushBack(value_type layer)
+	{
+		return Insert(m_PushIndex++, layer);
+	}
+
+	void LayerStack::Remove(uint32_t index)
+	{
+		if (m_Capacity > index)
+		{
+			DestroyAt(index);
 		}
 	}
 
-	void LayerStack::PopOverlay(ILayer* overlay)
+	LayerStack::value_type LayerStack::Get(uint32_t index)
 	{
-		auto it = std::find(m_Layers.begin() + m_LayerInsertIndex, m_Layers.end(), overlay);
-		if (it != m_Layers.end())
+		RNX_ASSERT(m_Capacity > index, "Index out of range!");
+		return m_Ptr[index];
+	}
+
+	const LayerStack::value_type LayerStack::Get(uint32_t index) const
+	{
+		RNX_ASSERT(m_Capacity > index, "Index out of range!");
+		return m_Ptr[index];
+	}
+
+	void LayerStack::Reallocate(uint32_t desired)
+	{
+		uint32_t newCapacity = std::max(8u, std::max(m_Capacity * 2u, desired));
+
+		value_type* newPtr = Traits::allocate(m_Alloc, (size_t)newCapacity);
+		RNX_ASSERT(newPtr, "Failed to allocate memory!");
+		if (m_Ptr)
 		{
-			overlay->OnDetach();
-			m_Layers.erase(it);
+			std::uninitialized_move_n(m_Ptr, m_Capacity, newPtr);
+			Traits::deallocate(m_Alloc, m_Ptr, m_Capacity);
 		}
+		std::fill(newPtr + m_Capacity, newPtr + newCapacity, nullptr);
+
+		m_Ptr = newPtr;
+		m_Capacity = newCapacity;
 	}
 
-	LayerStack::iterator LayerStack::begin()
+	void LayerStack::DestroyAt(uint32_t index)
 	{
-		return m_Layers.begin();
-	}
-
-	LayerStack::iterator LayerStack::end()
-	{
-		return m_Layers.end();
-	}
-
-	LayerStack::const_iterator LayerStack::begin() const
-	{
-		return m_Layers.cbegin();
-	}
-
-	LayerStack::const_iterator LayerStack::end() const
-	{
-		return m_Layers.cend();
-	}
-
-	LayerStack::reverse_iterator LayerStack::rbegin()
-	{
-		return m_Layers.rbegin();
-	}
-
-	LayerStack::reverse_iterator LayerStack::rend()
-	{
-		return m_Layers.rend();
-	}
-
-	LayerStack::const_reverse_iterator LayerStack::rbegin() const
-	{
-		return m_Layers.crbegin();
-	}
-
-	LayerStack::const_reverse_iterator LayerStack::rend() const
-	{
-		return m_Layers.crend();
+		if (m_Ptr[index] != nullptr)
+		{
+			delete m_Ptr[index];
+			m_Ptr[index] = nullptr;
+		}
 	}
 }

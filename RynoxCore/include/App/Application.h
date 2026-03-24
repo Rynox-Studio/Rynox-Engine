@@ -1,12 +1,13 @@
 #pragma once
 
 #include <string>
-#include <memory>
 
-#include <Rendering/IRenderer.h>
 #include <App/LayerStack.h>
+
 #include <Platform/IWindow.h>
 #include <Platform/ModuleService.h>
+
+#include <Rendering/IRenderer.h>
 #include <Rendering/RenderSystem.h>
 
 #include <Event/IEvent.h>
@@ -35,7 +36,11 @@ namespace Rynox
 
 		void RaiseEvent(IEvent& e);
 
-		const ApplicationDesc& GetDesc() const;
+		const ApplicationDesc& GetDesc() const { return m_Desc; }
+
+		void InsertLayer(uint32_t index, ILayer* layer) { m_LayerStack.Insert(index, layer); }
+		void PushLayer(ILayer* layer) { m_LayerStack.PushBack(layer); }
+		void RemoveLayer(ILayer* layer);
 
 		IWindow* Window() { return m_Window; }
 		IRenderer* Renderer() { return m_Renderer; }
@@ -50,6 +55,7 @@ namespace Rynox
 		bool m_Initialized = false;
 		bool m_Running = false;
 
+		LayerStack m_LayerStack;
 		IWindow* m_Window = nullptr;
 		ModuleService* m_ModuleService = nullptr;
 		RenderSystem* m_RenderSystem = nullptr;

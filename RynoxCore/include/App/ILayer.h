@@ -2,7 +2,7 @@
 
 #include "Event/IEvent.h"
 
-namespace Rynox::Core
+namespace Rynox
 {
 	class ILayer
 	{
@@ -13,8 +13,6 @@ namespace Rynox::Core
 		virtual void OnDetach() {}
 
 		virtual void OnUpdate(float dt) {}
-		virtual void OnRender() {}
-
 		virtual void OnEvent(IEvent& e) {}
 	};
 }

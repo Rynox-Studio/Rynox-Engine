@@ -51,6 +51,17 @@ namespace Rynox
 			return false;
 		}
 
+		RECT rc;
+		GetClientRect(m_Handle, &rc);
+		m_Data.size = Math::Vec2{ float(rc.right - rc.left), float(rc.bottom - rc.top) };
+
+		POINT p = {};
+		ClientToScreen(m_Handle, &p);
+		m_Data.position = Math::Vec2{ float(p.x), float(p.y) };
+
+		GetCursorPos(&p);
+		m_Data.mouse_pos_last = m_Data.mouse_pos = Math::Vec2{ float(p.x), float(p.y) };
+
 		m_Data.callback = desc.EventCallback;
 
 		if (desc.Show)
@@ -88,19 +99,18 @@ namespace Rynox
 	Math::Vec2 Win32Window::GetPosition() const
 	{
 		if (!m_Handle) return {};
-		return { (float)m_Data.x, (float)m_Data.y };
+		return m_Data.position;
 	}
 
 	Math::Vec2 Win32Window::GetSize() const
 	{
 		if (!m_Handle) return {};
-		return { (float)m_Data.width, (float)m_Data.height };
+		return m_Data.size;
 	}
 
 	void Win32Window::SetTitle(std::string_view title)
 	{
 		if (!m_Handle) return;
-
 		std::wstring wtitle(title.begin(), title.end());
 		SetWindowTextW(reinterpret_cast<HWND>(m_Handle), wtitle.c_str());
 	}
@@ -108,15 +118,13 @@ namespace Rynox
 	void Win32Window::SetPosition(Math::Vec2 position)
 	{
 		if (!m_Handle) return;
-
 		SetWindowPos(reinterpret_cast<HWND>(m_Handle), 0, position.x, position.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
 
 	void Win32Window::SetSize(Math::Vec2 size)
 	{
 		if (!m_Handle) return;
-
-		SetWindowPos(reinterpret_cast<HWND>(m_Handle), 0, 0, 0, size.x, size.y, SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+		SetWindowPos(reinterpret_cast<HWND>(m_Handle), 0, 0, 0, size.x, size.y, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
 
 	void Win32Window::SetEventCallback(std::function<void(IEvent&)> callback)
@@ -133,6 +141,59 @@ namespace Rynox
 		{
 			TranslateMessage(&msg);
 			DispatchMessageW(&msg);
+		}
+
+		if (m_Data.moved)
+		{
+			m_Data.moved = false;
+
+			POINT p = {};
+			ClientToScreen(m_Handle, &p);
+			m_Data.position.x = p.x;
+			m_Data.position.y = p.y;
+
+			WindowMoveEvent e(m_Data.position);
+			if (m_Data.callback)
+			{
+				m_Data.callback(e);
+			}
+		}
+
+		if (m_Data.resized)
+		{
+			m_Data.resized = false;
+
+			RECT rc;
+			GetClientRect(m_Handle, &rc);
+			m_Data.size.x = rc.right - rc.left;
+			m_Data.size.y = rc.bottom - rc.top;
+
+			WindowResizeEvent e(m_Data.size);
+			if (m_Data.callback)
+			{
+				m_Data.callback(e);
+			}
+		}
+
+		if (m_Data.mouse_moved)
+		{
+			m_Data.mouse_moved = false;
+
+			m_Data.mouse_pos_last = m_Data.mouse_pos;
+
+			if (m_Data.callback)
+			{
+				MouseMoveEvent e(m_Data.mouse_pos, m_Data.mouse_pos - m_Data.mouse_pos_last);
+				m_Data.callback(e);
+			}
+		}
+
+		if (m_Data.callback && (m_Data.scroll_delta.x != 0 || m_Data.scroll_delta.y != 0))
+		{
+			MouseScrollEvent e(m_Data.mouse_pos, m_Data.scroll_delta);
+			m_Data.callback(e);
+
+			m_Data.scroll_delta = { 0, 0 };
 		}
 	}
 
@@ -236,29 +297,27 @@ namespace Rynox
 		{
 			RECT rc;
 			GetClientRect(hWnd, &rc);
-			if (rc.right != data->width || rc.bottom != data->height)
-			{
-				data->width = rc.right;
-				data->height = rc.bottom;
-				if (data->callback)
-				{
-					WindowResizeEvent e(rc.right, rc.bottom);
-					data->callback(e);
-				}
-			}
+			data->resized = rc.right != data->size.x || rc.bottom != data->size.y;
 
 			POINT p{ 0, 0 };
 			ClientToScreen(hWnd, &p);
-			if (p.x != data->x || p.y != data->y)
-			{
-				data->x = p.x;
-				data->y = p.y;
-				if (data->callback)
-				{
-					WindowMoveEvent e(p.x, p.y);
-					data->callback(e);
-				}
-			}
+			data->moved = p.x != data->position.x || p.y != data->position.y;
+		} break;
+
+		case WM_MOVE:
+		{
+			int x = LOWORD(lParam);
+			int y = HIWORD(lParam);
+
+			data->moved = data->position.x != x || data->position.y != y;
+		} break;
+
+		case WM_SIZE:
+		{
+			int width = LOWORD(lParam);
+			int height = HIWORD(lParam);
+
+			data->resized = data->size.x != width || data->size.y != height;
 		} break;
 
 		case WM_SETFOCUS:
@@ -282,7 +341,7 @@ namespace Rynox
 				bool isDown = (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN);
 				int scancode = (lParam >> 16) & 0xFF;
 
-				if (isDown)
+				if (isDown) [[likely]]
 				{
 					bool isFirst = !(lParam & (1 << 30));
 					if (isFirst) [[unlikely]]
@@ -291,7 +350,7 @@ namespace Rynox
 						data->callback(e);
 					}
 				}
-				else
+				else [[unlikely]]
 				{
 					KeyUpEvent e(scancode);
 					data->callback(e);
@@ -314,40 +373,26 @@ namespace Rynox
 
 		case WM_MOUSEMOVE:
 		{
-			if (data->callback)
-			{
-				int x = GET_X_LPARAM(lParam);
-				int y = GET_Y_LPARAM(lParam);
-				int dx = x - data->mouse_last_x;
-				int dy = y - data->mouse_last_y;
+			data->mouse_moved = true;
 
-				MouseMoveEvent e(x, y, dx, dy);
-				data->callback(e);
-			}
+			data->mouse_pos = Math::Vec2{ float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam)) };
 		} break;
 
 		case WM_MOUSEWHEEL:
 		case WM_MOUSEHWHEEL:
 		{
-			if (data->callback)
+			bool isVertical = uMsg == WM_MOUSEWHEEL;
+			float delta = GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
+
+			if (isVertical) [[likely]]
 			{
-				bool isHorizontal = (uMsg == WM_MOUSEHWHEEL);
-				float delta = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
-
-				int x = GET_X_LPARAM(lParam);
-				int y = GET_Y_LPARAM(lParam);
-
-				if (isHorizontal) [[unlikely]]
-				{
-					MouseScrollEvent e(x, y, delta, 0);
-					data->callback(e);
-				}
-				else [[likely]]
-				{
-					MouseScrollEvent e(x, y, 0, delta);
-					data->callback(e);
-				}
+				data->scroll_delta.y += delta;
 			}
+			else [[unlikely]]
+			{
+				data->scroll_delta.x += delta;
+			}
+
 		} break;
 
 		case WM_LBUTTONDOWN:
@@ -362,9 +407,12 @@ namespace Rynox
 			if (data->callback)
 			{
 				int button;
-				bool isDown = !(uMsg % 2);
-				int x = GET_X_LPARAM(lParam);
-				int y = GET_Y_LPARAM(lParam);
+				bool isDown = (
+					uMsg == WM_LBUTTONDOWN || uMsg == WM_RBUTTONDOWN ||
+					uMsg == WM_MBUTTONDOWN || uMsg == WM_XBUTTONDOWN
+					);
+
+				Math::Vec2 pos = Math::Vec2{ float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam)) };
 
 				if (uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONUP)
 					button = 0;
@@ -373,18 +421,16 @@ namespace Rynox
 				else if (uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONUP)
 					button = 2;
 				else if (uMsg == WM_XBUTTONDOWN || uMsg == WM_XBUTTONUP)
-				{
 					button = 2 + HIWORD(wParam);
-				}
 
 				if (isDown)
 				{
-					MouseButtonDownEvent e(x, y, button);
+					MouseButtonDownEvent e(pos, button);
 					data->callback(e);
 				}
 				else
 				{
-					MouseButtonUpEvent e(x, y, button);
+					MouseButtonUpEvent e(pos, button);
 					data->callback(e);
 				}
 			}
