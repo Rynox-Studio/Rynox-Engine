@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Input/KeyCode.h>
 #include "IEvent.h"
 
 namespace Rynox
@@ -7,21 +8,21 @@ namespace Rynox
 	class KeyEvent : public IEvent 
 	{
 	public:
-		[[nodiscard]] int GetScancode() const { return m_Scancode; }
+		[[nodiscard]] KeyCode GetScancode() const { return m_Key; }
 
 		RNX_EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryKeyboard);
 	protected:
-		KeyEvent(int scancode)
-			: m_Scancode(scancode) {}
+		KeyEvent(KeyCode key)
+			: m_Key(key) {}
 
-		int m_Scancode;
+		KeyCode m_Key;
 	};
 
 	class KeyDownEvent : public KeyEvent 
 	{
 	public:
-		KeyDownEvent(int scancode)
-			: KeyEvent(scancode) {}
+		KeyDownEvent(KeyCode key)
+			: KeyEvent(key) {}
 
 		RNX_EVENT_CLASS_TYPE(KeyDown);
 	};
@@ -29,17 +30,18 @@ namespace Rynox
 	class KeyUpEvent : public KeyEvent 
 	{
 	public:
-		KeyUpEvent(int scancode)
-			: KeyEvent(scancode) {}
-		
+		KeyUpEvent(KeyCode key)
+			: KeyEvent(key) {
+		}
+
 		RNX_EVENT_CLASS_TYPE(KeyUp);
 	};
 
-	class KeyCharEvent : public KeyEvent 
+	class KeyCharEvent : public KeyEvent
 	{
 	public:
-		KeyCharEvent(int scancode, int codepoint)
-			: KeyEvent(scancode)
+		KeyCharEvent(KeyCode key, int codepoint)
+			: KeyEvent(key)
 			, m_Codepoint(codepoint) {}
 
 		[[nodiscard]] int GetCodepoint() const { return m_Codepoint; }
