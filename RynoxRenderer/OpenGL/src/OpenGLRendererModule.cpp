@@ -17,13 +17,13 @@ namespace Rynox
 	void OpenGLRendererModule::Shutdown()
 	{
 	}
-	std::string OpenGLRendererModule::GetName() const
+	const char* OpenGLRendererModule::GetName() const
 	{
-		return std::string("OpenGLRenderer");
+		return "OpenGLRenderer";
 	}
-	std::string OpenGLRendererModule::GetVersion() const
+	const char* OpenGLRendererModule::GetVersion() const
 	{
-		return std::string("1.0.0");
+		return "1.0.0";
 	}
 	Rynox::IRenderer* OpenGLRendererModule::GetRenderer()
 	{

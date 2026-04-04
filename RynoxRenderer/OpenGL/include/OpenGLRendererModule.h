@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Core/Interfaces/IRendererModule.h>
-#include <Core/Graphics/IRenderer.h>
+#include <Rendering/IRendererModule.h>
+#include <Rendering/IRenderer.h>
 
 #include <Common/Macros.h>
 
@@ -17,8 +17,8 @@ namespace Rynox
 
         bool Initialize() override;
         void Shutdown() override;
-        std::string GetName() const override;
-        std::string GetVersion() const override;
+        const char* GetName() const override;
+        const char* GetVersion() const override;
         Rynox::IRenderer* GetRenderer() override;
     private:
         Renderer::OpenGL::OpenGLRenderer* m_renderer;

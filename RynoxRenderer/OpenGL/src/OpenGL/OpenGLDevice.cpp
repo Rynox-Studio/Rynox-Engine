@@ -5,25 +5,25 @@
 
 namespace Rynox::Renderer::OpenGL
 {
-	constexpr GLenum ShaderDataTypeToOpenGLBaseType(Graphics::ShaderDataType type)
+	constexpr GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
 	{
 		switch (type)
 		{
-		case Graphics::ShaderDataType::Float:   return GL_FLOAT;
-		case Graphics::ShaderDataType::Float2:  return GL_FLOAT;
-		case Graphics::ShaderDataType::Float3:  return GL_FLOAT;
-		case Graphics::ShaderDataType::Float4:  return GL_FLOAT;
-		case Graphics::ShaderDataType::Int:     return GL_INT;
-		case Graphics::ShaderDataType::Int2:    return GL_INT;
-		case Graphics::ShaderDataType::Int3:    return GL_INT;
-		case Graphics::ShaderDataType::Int4:    return GL_INT;
-		case Graphics::ShaderDataType::Mat3:    return GL_FLOAT;
-		case Graphics::ShaderDataType::Mat4:    return GL_FLOAT;
-		case Graphics::ShaderDataType::Bool:    return GL_BOOL;
+		case ShaderDataType::Float:   return GL_FLOAT;
+		case ShaderDataType::Float2:  return GL_FLOAT;
+		case ShaderDataType::Float3:  return GL_FLOAT;
+		case ShaderDataType::Float4:  return GL_FLOAT;
+		case ShaderDataType::Int:     return GL_INT;
+		case ShaderDataType::Int2:    return GL_INT;
+		case ShaderDataType::Int3:    return GL_INT;
+		case ShaderDataType::Int4:    return GL_INT;
+		case ShaderDataType::Mat3:    return GL_FLOAT;
+		case ShaderDataType::Mat4:    return GL_FLOAT;
+		case ShaderDataType::Bool:    return GL_BOOL;
 		}
 		return 0;
 	}
-	OpenGLVertexBuffer OpenGLDevice::CreateVertexBuffer(const void* data, uint32_t size, Graphics::VertexLayout& layout)
+	OpenGLVertexBuffer OpenGLDevice::CreateVertexBuffer(const void* data, uint32_t size, VertexLayout& layout)
 	{
 		OpenGL::OpenGLVertexBuffer buffer;
 		buffer.size = size;
@@ -174,6 +174,10 @@ namespace Rynox::Renderer::OpenGL
 	void OpenGLDevice::DrawElements(uint32_t count, uint32_t offset)
 	{
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)(offset * sizeof(uint32_t)));
+	}
+	void OpenGLDevice::DrawElementsBaseVertex(uint32_t count, uint32_t offset, int32_t baseVertex)
+	{
+		glDrawElementsBaseVertex(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)(offset * sizeof(uint32_t)), baseVertex);
 	}
 	void OpenGLDevice::UniformMatrix4fv(const OpenGLShader& shader, const char* name, const float* data)
 	{
