@@ -8,6 +8,8 @@
 
 #include <Platform/Platform.h>
 
+#include <Platform/ModuleService.h>
+
 namespace Rynox
 {
 	Application* Application::s_Instance = nullptr;
@@ -52,6 +54,27 @@ namespace Rynox
 				RNX_LOG_ERROR("[Application] Failed to initialize Window.");
 				return false;
 			}
+		}
+
+		if (!m_ModuleService.Initialize())
+			return false;
+
+		// TODO: Add logs
+		if ((m_Desc.Flags & ApplicationFlagHeadless) == 0)
+		{
+			if (!m_ModuleService.LoadModule(RYNOX_OPENGL_MODULE_FILENAME, "Renderer"))
+				return false;
+
+			auto* module = dynamic_cast<IRendererModule*>(m_ModuleService.GetModule("Renderer"));
+			if (!module || !module->Initialize())
+				return false;
+
+			RendererDesc rDesc = {};
+			rDesc.nWindow = m_Window->GetNativeHandle();
+
+			m_Renderer = module->GetRenderer();
+			if (!m_Renderer || !m_Renderer->Initialize(rDesc))
+				return false;
 		}
 
 		m_Initialized = true;
