@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
-
+cmake_minimum_required(VERSION 3.30)
 project(Rynox-Engine LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(DEPENDENCIES_OWN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Own)
 set(DEPENDENCIES_THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Third_Party)
@@ -13,6 +14,7 @@ endif()
 
 # Third_Party
 add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glad)
+add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/entt)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -30,10 +32,6 @@ set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)  # glTF
 
 add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/assimp EXCLUDE_FROM_ALL)
 add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glm EXCLUDE_FROM_ALL)
-
-add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/Flies)
-
-# Options
 
 # Own
 add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxCommon)
