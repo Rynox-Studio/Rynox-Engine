@@ -57,7 +57,7 @@ namespace Rynox
 		virtual void SetViewport(const Viewport& viewport) = 0;
 		virtual void SetClearColor(const Math::Vec4& color) = 0;
 
-		virtual MeshHandle LoadMesh(const MeshData& mesh) = 0;
+		virtual GeometryHandle LoadMesh(const MeshData& mesh) = 0;
 		virtual ShaderHandle LoadShader(const ShaderData& shader) = 0;
 	};
 }

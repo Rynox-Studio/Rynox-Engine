@@ -17,9 +17,9 @@ namespace Rynox
 		GPUHandle(uint32_t i, uint32_t g) : id(i), gen(g) {}
 	};
 
-	struct MeshTag {};
+	struct GeometryTag {};
 	struct ShaderTag {};
 
-	using MeshHandle = GPUHandle<MeshTag>;
+	using GeometryHandle = GPUHandle<GeometryTag>;
 	using ShaderHandle = GPUHandle<ShaderTag>;
 }
