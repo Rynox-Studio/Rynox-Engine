@@ -2,7 +2,7 @@
 
 #include <Common/Macros.h>
 #include <Common/Assert.h>
-#include <Core/Graphics/IRenderer.h>
+#include <Rendering/IRenderer.h>
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -19,11 +19,11 @@ namespace Rynox::DirectX12
 	template<typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	constexpr UINT BUFFER_COUNT = 2;
+	constexpr UINT FRAME_COUNT = 2;
 
-	static DXGI_FORMAT ToDXGI(Graphics::ShaderDataType type)
+	static DXGI_FORMAT ToDXGI(ShaderDataType type)
 	{
-		using enum Graphics::ShaderDataType;
+		using enum ShaderDataType;
 
 		switch (type)
 		{
