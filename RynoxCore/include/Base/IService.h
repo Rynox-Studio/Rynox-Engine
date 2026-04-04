@@ -7,7 +7,7 @@ namespace Rynox
 	public:
 		virtual ~IService() = default;
 
-		virtual bool Initialize() {}
-		virtual void Shutdown() {}
+		virtual bool Initialize() = 0;
+		virtual void Shutdown() = 0;
 	};
 }
