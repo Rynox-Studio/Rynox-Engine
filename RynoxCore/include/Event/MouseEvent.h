@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Input/MouseCode.h>
+#include <Input/MouseButton.h>
 #include "IEvent.h"
 
 namespace Rynox
@@ -50,20 +50,20 @@ namespace Rynox
 	class MouseButtonEvent : public MouseEvent
 	{
 	public:
-		[[nodiscard]] MouseCode GetButton() const { return m_Button; }
+		[[nodiscard]] MouseButton GetButton() const { return m_Button; }
 
 	protected:
-		MouseButtonEvent(Math::Vec2 position, MouseCode button)
+		MouseButtonEvent(Math::Vec2 position, MouseButton button)
 			: MouseEvent(position)
 			, m_Button(button) {}
 
-		MouseCode m_Button;
+		MouseButton m_Button;
 	};
 
 	class MouseButtonDownEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonDownEvent(Math::Vec2 position, MouseCode button)
+		MouseButtonDownEvent(Math::Vec2 position, MouseButton button)
 			: MouseButtonEvent(position, button) {}
 
 		RNX_EVENT_CLASS_TYPE(MouseButtonDown);
@@ -73,7 +73,7 @@ namespace Rynox
 	class MouseButtonUpEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonUpEvent(Math::Vec2 position, MouseCode button)
+		MouseButtonUpEvent(Math::Vec2 position, MouseButton button)
 			: MouseButtonEvent(position, button) {}
 
 		RNX_EVENT_CLASS_TYPE(MouseButtonUp);

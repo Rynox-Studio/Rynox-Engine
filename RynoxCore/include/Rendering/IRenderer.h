@@ -46,7 +46,7 @@ namespace Rynox
 	public:
 		virtual ~IRenderer() noexcept(false) = default;
 
-		virtual bool Initialize(const RendererDesc& desc) = 0;
+		virtual bool Initialize(const RendererDesc& desc) noexcept(false) = 0;
 		virtual const RendererDesc& GetDesc() const = 0;
 
 		virtual void BeginFrame(const FrameData& frame) = 0;

@@ -4,10 +4,10 @@
 
 namespace Rynox
 {
-	using MouseCode = uint32_t;
+	using MouseButton = uint32_t;
 	namespace Mouse
 	{
-		enum : MouseCode
+		enum : MouseButton
 		{
 			None = 0,
 

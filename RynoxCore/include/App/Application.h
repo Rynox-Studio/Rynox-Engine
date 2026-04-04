@@ -16,9 +16,18 @@
 
 namespace Rynox
 {
+	enum ApplicationFlags : uint32_t
+	{
+		ApplicationFlagNone = 0,
+		ApplicationFlagHeadless = RNX_BIT(0)
+	};
+
 	struct ApplicationDesc
 	{
 		std::string Name = "Rynox Application";
+		ApplicationFlags Flags = ApplicationFlagNone;
+		int ArgCount = 0;
+		char** ArgVector = nullptr;
 	};
 
 	class Application
@@ -56,9 +65,8 @@ namespace Rynox
 		bool m_Running = false;
 
 		LayerStack m_LayerStack;
+		ModuleService m_ModuleService;
 		IWindow* m_Window = nullptr;
-		ModuleService* m_ModuleService = nullptr;
-		RenderSystem* m_RenderSystem = nullptr;
 		IRenderer* m_Renderer = nullptr;
 
 		static Application* s_Instance;

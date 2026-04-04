@@ -13,6 +13,7 @@ namespace Rynox
 		virtual void OnDetach() {}
 
 		virtual void OnUpdate(float dt) {}
+		virtual void OnRenderer() {}
 		virtual void OnEvent(IEvent& e) {}
 	};
 }
