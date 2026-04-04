@@ -54,13 +54,13 @@ namespace Rynox::DirectX12
 		if (!m_Device) return false;
 
 		{
-			D3D12_COMMAND_QUEUE_DESC qDesc = {};
-			qDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-			qDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_HIGH;
-			qDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-			qDesc.NodeMask = 0;
+			D3D12_COMMAND_QUEUE_DESC cqDesc = {};
+			cqDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+			cqDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_HIGH;
+			cqDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+			cqDesc.NodeMask = 0;
 
-			hr = m_Device->CreateCommandQueue(&qDesc, IID_PPV_ARGS(&m_Queue));
+			hr = m_Device->CreateCommandQueue(&cqDesc, IID_PPV_ARGS(&m_DirectQueue));
 			if (FAILED(hr)) return false;
 		}
 
@@ -77,11 +77,11 @@ namespace Rynox::DirectX12
 			scDesc.BufferCount = FRAME_COUNT;
 			scDesc.Scaling = DXGI_SCALING_STRETCH;
 			scDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-			scDesc.AlphaMode = DXGI_ALPHA_MODE_STRAIGHT;
+			scDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
 			scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
 			hr = m_Factory->CreateSwapChainForHwnd(
-				m_Queue.Get(),
+				m_DirectQueue.Get(),
 				hWnd,
 				&scDesc, nullptr, nullptr, &swapchain);
 			if (FAILED(hr)) return false;
@@ -140,6 +140,33 @@ namespace Rynox::DirectX12
 		hr = m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence));
 		if (FAILED(hr)) return false;
 
+		{
+			D3D12_COMMAND_QUEUE_DESC cqDesc = {};
+			cqDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
+			cqDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_HIGH;
+			cqDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+			cqDesc.NodeMask = 0;
+
+			hr = m_Device->CreateCommandQueue(&cqDesc, IID_PPV_ARGS(&m_CopyQueue));
+			if (FAILED(hr)) return false;
+
+			hr = m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, IID_PPV_ARGS(&m_CopyAllocator));
+			if (FAILED(hr)) return false;
+
+			hr = m_Device->CreateCommandList(
+				0,
+				D3D12_COMMAND_LIST_TYPE_COPY, 
+				m_CopyAllocator.Get(),
+				nullptr,
+				IID_PPV_ARGS(&m_CopyList)
+			);
+			if (FAILED(hr)) return false;
+			
+			m_CopyFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+			hr = m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_CopyFence));
+			if (FAILED(hr)) return false;
+		}
+
 		m_Desc.nWindow = desc.nWindow;
 		m_Desc.nDisplay = desc.nDisplay;
 		m_Desc.outputWidth = width;
@@ -157,10 +184,28 @@ namespace Rynox::DirectX12
 
 	void Dx12Renderer::Shutdown()
 	{
-		if (m_Queue && m_Fence && m_FenceEvent)
+		if (m_CopyQueue && m_CopyFence && m_CopyFenceEvent)
+		{
+		    const UINT64 value = ++m_CopyFenceValue;
+		    m_CopyQueue->Signal(m_CopyFence.Get(), value);
+		
+		    if (m_CopyFence->GetCompletedValue() < value)
+		    {
+		        m_CopyFence->SetEventOnCompletion(value, m_CopyFenceEvent);
+		        WaitForSingleObject(m_CopyFenceEvent, INFINITE);
+		    }
+		}
+
+		if (m_CopyFenceEvent)
+		{
+		    CloseHandle(m_CopyFenceEvent);
+		    m_CopyFenceEvent = nullptr;
+		}
+
+		if (m_DirectQueue && m_Fence && m_FenceEvent)
 		{
 			const UINT64 value = ++m_FenceValue;
-			m_Queue->Signal(m_Fence.Get(), value);
+			m_DirectQueue->Signal(m_Fence.Get(), value);
 
 			if (m_Fence->GetCompletedValue() < value)
 			{
@@ -187,9 +232,15 @@ namespace Rynox::DirectX12
     	for (UINT i = 0; i < FRAME_COUNT; i++)
     	    m_RenderTargets[i].Reset();
 
+		m_StagingBuffers.clear();
+		m_CopyFence.Reset();
+		m_CopyList.Reset();
+		m_CopyAllocator.Reset();
+		m_CopyQueue.Reset();
+
     	m_RTVHeap.Reset();
     	m_SwapChain.Reset();
-    	m_Queue.Reset();
+    	m_DirectQueue.Reset();
     	m_Device.Reset();
     	m_Adapter.Reset();
     	m_Factory.Reset();
@@ -258,11 +309,11 @@ namespace Rynox::DirectX12
     	m_List->ResourceBarrier(1, &barrier);
 		
 		m_List->Close();
-		m_Queue->ExecuteCommandLists(1, (ID3D12CommandList**)(m_List.GetAddressOf()));
+		m_DirectQueue->ExecuteCommandLists(1, (ID3D12CommandList**)(m_List.GetAddressOf()));
 
 		m_FenceValue++;
 		m_FenceValues[m_FrameIndex] = m_FenceValue;
-		hr = m_Queue->Signal(m_Fence.Get(), m_FenceValue);
+		hr = m_DirectQueue->Signal(m_Fence.Get(), m_FenceValue);
 		if (FAILED(hr)) return;
 
 		hr = m_SwapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
@@ -279,7 +330,7 @@ bool Dx12Renderer::SetOutputSize(uint32_t width, uint32_t height)
 	HRESULT hr = S_OK;
     const UINT64 value = ++m_FenceValue;
 
-	hr = m_Queue->Signal(m_Fence.Get(), value);
+	hr = m_DirectQueue->Signal(m_Fence.Get(), value);
 	if (FAILED(hr)) return false;
 
     if (m_Fence->GetCompletedValue() < value)
@@ -332,8 +383,24 @@ bool Dx12Renderer::SetOutputSize(uint32_t width, uint32_t height)
 
 	MeshHandle Dx12Renderer::LoadMesh(const MeshData& mesh)
 	{
-		return MeshHandle();
+		MeshResource resource = {};
+
+	    uint64_t vbSize = (uint64_t)mesh.vertexSize;
+	    uint64_t ibSize = (uint64_t)mesh.indexCount * sizeof(uint32_t);
+
+	    if (!UploadBuffer(mesh.vertices, vbSize, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &resource.VertexBuffer))
+	        return MeshHandle();
+
+	    if (!UploadBuffer(mesh.indices, ibSize, D3D12_RESOURCE_STATE_INDEX_BUFFER, &resource.IndexBuffer))
+	        return MeshHandle();
+
+	    FlushCopyQueue();
+
+	    resource.IndexCount = mesh.indexCount;
+
+	    return m_MeshStorage.Add(std::move(resource));
 	}
+
 	ShaderHandle Dx12Renderer::LoadShader(const ShaderData& shader)
 	{
 		return ShaderHandle();
@@ -419,6 +486,79 @@ bool Dx12Renderer::SetOutputSize(uint32_t width, uint32_t height)
 	
     	return true;
 	}
+
+    void Dx12Renderer::FlushCopyQueue()
+    {
+		m_CopyList->Close();
+    	m_CopyQueue->ExecuteCommandLists(1, (ID3D12CommandList**)m_CopyList.GetAddressOf());
+
+    	const UINT64 value = ++m_CopyFenceValue;
+    	m_CopyQueue->Signal(m_CopyFence.Get(), value);
+    	m_CopyFence->SetEventOnCompletion(value, m_CopyFenceEvent);
+    	WaitForSingleObject(m_CopyFenceEvent, INFINITE);
+
+    	m_StagingBuffers.clear();
+
+    	m_CopyAllocator->Reset();
+    	m_CopyList->Reset(m_CopyAllocator.Get(), nullptr);
+    }
+
+    bool Dx12Renderer::UploadBuffer(const void *data, uint64_t size, D3D12_RESOURCE_STATES finalSate, ID3D12Resource **outResource)
+    {
+		D3D12_HEAP_PROPERTIES defaultHeap = {};
+    	defaultHeap.Type = D3D12_HEAP_TYPE_DEFAULT;
+    	defaultHeap.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    	defaultHeap.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+    	defaultHeap.CreationNodeMask = 1;
+    	defaultHeap.VisibleNodeMask = 1;
+
+    	D3D12_RESOURCE_DESC bufDesc = {};
+    	bufDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+    	bufDesc.Width = size;
+    	bufDesc.Height = 1;
+    	bufDesc.DepthOrArraySize = 1;
+    	bufDesc.MipLevels = 1;
+    	bufDesc.Format = DXGI_FORMAT_UNKNOWN;
+    	bufDesc.SampleDesc.Count = 1;
+    	bufDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    	bufDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+    	ComPtr<ID3D12Resource> gpuBuffer;
+    	HRESULT hr = m_Device->CreateCommittedResource(
+    	    &defaultHeap, D3D12_HEAP_FLAG_NONE,
+    	    &bufDesc, D3D12_RESOURCE_STATE_COMMON,
+    	    nullptr, IID_PPV_ARGS(&gpuBuffer)
+    	);
+    	if (FAILED(hr)) return false;
+
+    	// Staging буфер
+    	D3D12_HEAP_PROPERTIES uploadHeap = {};
+    	uploadHeap.Type = D3D12_HEAP_TYPE_UPLOAD;
+    	uploadHeap.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    	uploadHeap.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+    	uploadHeap.CreationNodeMask = 1;
+    	uploadHeap.VisibleNodeMask = 1;
+
+    	ComPtr<ID3D12Resource> uploadBuffer;
+    	hr = m_Device->CreateCommittedResource(
+    	    &uploadHeap, D3D12_HEAP_FLAG_NONE,
+    	    &bufDesc, D3D12_RESOURCE_STATE_GENERIC_READ,
+    	    nullptr, IID_PPV_ARGS(&uploadBuffer)
+    	);
+    	if (FAILED(hr)) return false;
+
+    	void* mapped = nullptr;
+    	uploadBuffer->Map(0, nullptr, &mapped);
+    	memcpy(mapped, data, size);
+    	uploadBuffer->Unmap(0, nullptr);
+
+    	m_CopyList->CopyResource(gpuBuffer.Get(), uploadBuffer.Get());
+
+    	m_StagingBuffers.push_back(uploadBuffer);
+
+    	*outResource = gpuBuffer.Detach();
+    	return true;
+    }
 
     Rynox::IRenderer* CreateRenderer()
     {

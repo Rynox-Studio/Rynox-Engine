@@ -62,7 +62,7 @@ namespace Rynox
 		// TODO: Add logs
 		if ((m_Desc.Flags & ApplicationFlagHeadless) == 0)
 		{
-			if (!m_ModuleService.LoadModule(RYNOX_OPENGL_MODULE_FILENAME, "Renderer"))
+			if (!m_ModuleService.LoadModule(RYNOX_DIRECTX12_MODULE_FILENAME, "Renderer"))
 				return false;
 
 			auto* module = dynamic_cast<IRendererModule*>(m_ModuleService.GetModule("Renderer"));
@@ -75,6 +75,8 @@ namespace Rynox
 			m_Renderer = module->GetRenderer();
 			if (!m_Renderer || !m_Renderer->Initialize(rDesc))
 				return false;
+
+			m_Renderer->SetClearColor({0.1f, 0.1f, 0.1f, 1.0f});
 		}
 
 		m_Initialized = true;
@@ -95,6 +97,9 @@ namespace Rynox
 			last = now;
 
 			m_Window->PollEvents();
+
+			m_Renderer->BeginFrame({});
+			m_Renderer->EndFrame();
 		}
 	}
 
@@ -135,16 +140,14 @@ namespace Rynox
 	bool Application::OnWindowResize(WindowResizeEvent& e)
 	{
 		Math::Vec2 size = e.GetSize();
-
 		RNX_LOG_INFO("Resize: ({}, {})", size.x, size.y);
+		m_Renderer->SetOutputSize(size.x, size.y);
 
 		return false;
 	}
 
 	bool Application::OnKeyDown(KeyDownEvent& e)
 	{
-		int scancode = e.GetScancode();
-
 		return false;
 	}
 }

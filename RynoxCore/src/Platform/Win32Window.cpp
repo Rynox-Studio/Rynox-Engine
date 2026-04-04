@@ -21,7 +21,7 @@ namespace Rynox
 		if (m_Handle)
 		{
 			Unregister();
-			DestroyWindow(reinterpret_cast<HWND>(m_Handle));
+			DestroyWindow(m_Handle);
 			m_Handle = nullptr;
 		}
 	}
@@ -66,14 +66,14 @@ namespace Rynox
 
 		if (desc.Show)
 		{
-			ShowWindow(reinterpret_cast<HWND>(m_Handle), SW_SHOW);
+			ShowWindow(m_Handle, SW_SHOW);
 			m_Data.shown = true;
 		}
 		if (desc.Focus)
 		{
 			SetFocus(m_Handle);
 		}
-		UpdateWindow(reinterpret_cast<HWND>(m_Handle));
+		UpdateWindow(m_Handle);
 
 		return true;
 	}
@@ -82,13 +82,13 @@ namespace Rynox
 	{
 		if (!m_Handle) return "";
 
-		int len = GetWindowTextLengthW(reinterpret_cast<HWND>(m_Handle));
+		int len = GetWindowTextLengthW(m_Handle);
 		if (len > 0)
 		{
 			std::wstring wtitle;
 			wtitle.resize(len + 1, '\0');
 
-			GetWindowTextW(reinterpret_cast<HWND>(m_Handle), wtitle.data(), len + 1);
+			GetWindowTextW(m_Handle, wtitle.data(), len + 1);
 
 			std::string title(wtitle.begin(), wtitle.end());
 			return title;
@@ -112,19 +112,19 @@ namespace Rynox
 	{
 		if (!m_Handle) return;
 		std::wstring wtitle(title.begin(), title.end());
-		SetWindowTextW(reinterpret_cast<HWND>(m_Handle), wtitle.c_str());
+		SetWindowTextW(m_Handle, wtitle.c_str());
 	}
 
 	void Win32Window::SetPosition(Math::Vec2 position)
 	{
 		if (!m_Handle) return;
-		SetWindowPos(reinterpret_cast<HWND>(m_Handle), 0, position.x, position.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+		SetWindowPos(m_Handle, 0, position.x, position.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
 
 	void Win32Window::SetSize(Math::Vec2 size)
 	{
 		if (!m_Handle) return;
-		SetWindowPos(reinterpret_cast<HWND>(m_Handle), 0, 0, 0, size.x, size.y, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+		SetWindowPos(m_Handle, 0, 0, 0, size.x, size.y, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
 
 	void Win32Window::SetEventCallback(std::function<void(IEvent&)> callback)
@@ -137,7 +137,7 @@ namespace Rynox
 		if (!m_Handle) return;
 
 		MSG msg;
-		while (PeekMessageW(&msg, reinterpret_cast<HWND>(m_Handle), 0, 0, PM_REMOVE))
+		while (PeekMessageW(&msg, m_Handle, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessageW(&msg);
@@ -179,11 +179,12 @@ namespace Rynox
 		{
 			m_Data.mouse_moved = false;
 
+			Math::Vec2 delta = m_Data.mouse_pos - m_Data.mouse_pos_last;
 			m_Data.mouse_pos_last = m_Data.mouse_pos;
 
 			if (m_Data.callback)
 			{
-				MouseMoveEvent e(m_Data.mouse_pos, m_Data.mouse_pos - m_Data.mouse_pos_last);
+				MouseMoveEvent e(m_Data.mouse_pos, delta);
 				m_Data.callback(e);
 			}
 		}
@@ -206,7 +207,7 @@ namespace Rynox
 	{
 		if (!m_Handle) return;
 
-		ShowWindow(reinterpret_cast<HWND>(m_Handle), SW_SHOW);
+		ShowWindow(m_Handle, SW_SHOW);
 		m_Data.shown = true;
 	}
 
@@ -214,7 +215,7 @@ namespace Rynox
 	{
 		if (!m_Handle) return;
 
-		ShowWindow(reinterpret_cast<HWND>(m_Handle), SW_HIDE);
+		ShowWindow(m_Handle, SW_HIDE);
 		m_Data.shown = false;
 	}
 
