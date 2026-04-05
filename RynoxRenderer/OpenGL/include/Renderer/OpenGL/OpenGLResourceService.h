@@ -4,13 +4,12 @@
 #include <type_traits>
 #include <Common/Logger.h>
 
-#include "Core/Graphics/GraphicsData.h"
+#include "Rendering/GraphicsData.h"
+#include <Rendering/GPUHandle.h>
 
 #include "Renderer/OpenGL/OpenGLResourceSlot.h"
 #include "Renderer/OpenGL/OpenGLResources.h"
 #include "Renderer/OpenGL/OpenGLDevice.h"
-
-using namespace Rynox::Graphics;
 
 namespace Rynox::Renderer::OpenGL
 {
@@ -35,12 +34,12 @@ namespace Rynox::Renderer::OpenGL
 			return Handle(id, slot.gen);
 		}
 
-		MeshHandle QueueMesh(const MeshData& meshData)
+		GeometryHandle QueueMesh(const MeshData& meshData)
 		{
-			MeshHandle handle = QueueResource<
+			GeometryHandle handle = QueueResource<
 				OpenGLResourceSlot<OpenGLMesh, MeshData>,
 				MeshData,
-				MeshHandle
+				GeometryHandle
 			>(m_meshes, meshData);
 
 			m_meshQueue.push_back(handle.id);
@@ -60,7 +59,7 @@ namespace Rynox::Renderer::OpenGL
 		template<typename T, typename Handle>
 		auto& GetSlotContainer()
 		{
-			if constexpr (std::is_same_v<Handle, MeshHandle>)
+			if constexpr (std::is_same_v<Handle, GeometryHandle>)
 				return m_meshes;
 			else if constexpr (std::is_same_v<Handle, ShaderHandle>)
 				return m_shaders;

@@ -49,18 +49,45 @@ namespace Rynox::Renderer::OpenGL
 	{
 		return m_desc;
 	}
-	void OpenGLRenderer::BeginFrame(const Graphics::FrameData& frame)
+	void OpenGLRenderer::BeginFrame(const FrameData& frame)
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_frameData = frame;
 		m_pResourceService->ProcessQueues();
 	}
-	void OpenGLRenderer::Submit(const Graphics::DrawCommand& cmd)
+	void OpenGLRenderer::Submit(const DrawCommand& cmd)
 	{
 		m_drawCommandList.push_back(cmd);
 	}
 	void OpenGLRenderer::EndFrame()
 	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		Math::Mat4 VP = m_frameData.camera.projMatrixLH * m_frameData.camera.viewMatrixLH;
+		for (const auto& cmd : m_drawCommandList)
+		{
+			auto pShader = m_pResourceService->GetResource<OpenGLShader>(cmd.Shader);
+			auto pMesh = m_pResourceService->GetResource<OpenGLMesh>(cmd.Geometry);
+
+			if (pShader && pMesh)
+			{
+				OpenGLDevice::BindShader(*pShader);
+				OpenGLDevice::BindVertexArray(pMesh->vao);
+
+				Math::Mat4 MVP = VP * cmd.Transform;
+				OpenGLDevice::UniformMatrix4fv(*pShader, "uMVP", MVP.data);
+
+				OpenGLDevice::DrawElementsBaseVertex(cmd.SubMesh.indexCount, cmd.SubMesh.indexOffset, cmd.SubMesh.baseVertex);
+
+				OpenGLDevice::UnBindVertexArray();
+				OpenGLDevice::UnBindShader();
+			}
+			else
+			{
+				RNX_LOG_ERROR("[OpenGL] Failed to retrieve resources for DrawCommand.");
+			}
+		}
+		m_drawCommandList.clear();
         m_pContext->SwapBuffers();
 	}
 	bool OpenGLRenderer::SetOutputSize(uint32_t width, uint32_t height)
@@ -76,11 +103,11 @@ namespace Rynox::Renderer::OpenGL
 	{
 		glClearColor(color.x, color.y, color.z, color.w);
 	}
-	Graphics::MeshHandle OpenGLRenderer::LoadMesh(const Graphics::MeshData& mesh)
+	GeometryHandle OpenGLRenderer::LoadMesh(const MeshData& mesh)
 	{
 		return m_pResourceService->QueueMesh(mesh);
 	}
-	Graphics::ShaderHandle OpenGLRenderer::LoadShader(const Graphics::ShaderData& shader)
+	ShaderHandle OpenGLRenderer::LoadShader(const ShaderData& shader)
 	{
 		return m_pResourceService->QueueShader(shader);
 	}

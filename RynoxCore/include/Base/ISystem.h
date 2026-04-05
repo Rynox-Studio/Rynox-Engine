@@ -8,11 +8,6 @@ namespace Rynox
 	{
 	public:
 		virtual ~ISystem() = default;
-
-		virtual void OnAttach() {}
-		virtual void OnDetach() {}
-
-		virtual void OnUpdate(float dt) {}
-		virtual void OnEvent(IEvent& event) {}
+		virtual void Update(float dt) {}
 	};
 }

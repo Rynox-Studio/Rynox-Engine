@@ -8,7 +8,6 @@
 #include <Platform/ModuleService.h>
 
 #include <Rendering/IRenderer.h>
-#include <Rendering/RenderSystem.h>
 
 #include <Event/IEvent.h>
 #include <Event/WindowEvent.h>
