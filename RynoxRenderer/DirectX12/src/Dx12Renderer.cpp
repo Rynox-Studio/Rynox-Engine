@@ -260,16 +260,16 @@ namespace Rynox::DirectX12
 		if (completedValue < m_FenceValues[m_FrameIndex])
 		{
 			hr = m_Fence->SetEventOnCompletion(m_FenceValues[m_FrameIndex], m_FenceEvent);
-			if (FAILED(hr)) return;
+			//if (FAILED(hr)) return;
 
 			WaitForSingleObject(m_FenceEvent, INFINITE);
 		}
 
 		hr = m_Allocators[m_FrameIndex]->Reset();
-		if (FAILED(hr)) return;
+		//if (FAILED(hr)) return;
 
 		hr = m_List->Reset(m_Allocators[m_FrameIndex].Get(), nullptr);
-		if (FAILED(hr)) return;
+		//if (FAILED(hr)) return;
 
 		D3D12_RESOURCE_BARRIER barrier = {};
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -314,10 +314,10 @@ namespace Rynox::DirectX12
 		m_FenceValue++;
 		m_FenceValues[m_FrameIndex] = m_FenceValue;
 		hr = m_DirectQueue->Signal(m_Fence.Get(), m_FenceValue);
-		if (FAILED(hr)) return;
+		//if (FAILED(hr)) return;
 
 		hr = m_SwapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
-		if (FAILED(hr)) return;
+		//if (FAILED(hr)) return;
 
 		m_FrameIndex = (m_FrameIndex + 1) % FRAME_COUNT;
 	}
