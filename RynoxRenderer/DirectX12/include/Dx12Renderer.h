@@ -28,7 +28,7 @@ namespace Rynox::DirectX12
 		void SetViewport(const Viewport& viewport) override;
 		void SetClearColor(const Math::Vec4& color) override;
 
-		MeshHandle LoadMesh(const MeshData& mesh) override;
+		GeometryHandle LoadMesh(const MeshData& mesh) override;
 		ShaderHandle LoadShader(const ShaderData& shader) override;
 
 	private:
@@ -92,7 +92,7 @@ namespace Rynox::DirectX12
 
 		};
 
-		ResourceStorage<MeshResource, MeshTag> m_MeshStorage;
+		ResourceStorage<MeshResource, GeometryTag> m_MeshStorage;
 		ResourceStorage<ShaderResource, ShaderTag> m_ShaderStorage;
 	};
 

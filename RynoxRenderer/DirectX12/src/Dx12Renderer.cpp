@@ -256,20 +256,14 @@ namespace Rynox::DirectX12
 	void Dx12Renderer::BeginFrame(const FrameData& data)
 	{
 		HRESULT hr = S_OK;
-		const UINT64 completedValue = m_Fence->GetCompletedValue();
-		if (completedValue < m_FenceValues[m_FrameIndex])
+		if (m_Fence->GetCompletedValue() < m_FenceValues[m_FrameIndex])
 		{
 			hr = m_Fence->SetEventOnCompletion(m_FenceValues[m_FrameIndex], m_FenceEvent);
-			//if (FAILED(hr)) return;
-
 			WaitForSingleObject(m_FenceEvent, INFINITE);
 		}
 
 		hr = m_Allocators[m_FrameIndex]->Reset();
-		//if (FAILED(hr)) return;
-
 		hr = m_List->Reset(m_Allocators[m_FrameIndex].Get(), nullptr);
-		//if (FAILED(hr)) return;
 
 		D3D12_RESOURCE_BARRIER barrier = {};
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -314,10 +308,7 @@ namespace Rynox::DirectX12
 		m_FenceValue++;
 		m_FenceValues[m_FrameIndex] = m_FenceValue;
 		hr = m_DirectQueue->Signal(m_Fence.Get(), m_FenceValue);
-		//if (FAILED(hr)) return;
-
 		hr = m_SwapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
-		//if (FAILED(hr)) return;
 
 		m_FrameIndex = (m_FrameIndex + 1) % FRAME_COUNT;
 	}
@@ -381,7 +372,7 @@ bool Dx12Renderer::SetOutputSize(uint32_t width, uint32_t height)
 		m_ClearColor = color;
 	}
 
-	MeshHandle Dx12Renderer::LoadMesh(const MeshData& mesh)
+	GeometryHandle Dx12Renderer::LoadMesh(const MeshData& mesh)
 	{
 		MeshResource resource = {};
 
@@ -389,10 +380,10 @@ bool Dx12Renderer::SetOutputSize(uint32_t width, uint32_t height)
 	    uint64_t ibSize = (uint64_t)mesh.indexCount * sizeof(uint32_t);
 
 	    if (!UploadBuffer(mesh.vertices, vbSize, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &resource.VertexBuffer))
-	        return MeshHandle();
+	        return GeometryHandle();
 
 	    if (!UploadBuffer(mesh.indices, ibSize, D3D12_RESOURCE_STATE_INDEX_BUFFER, &resource.IndexBuffer))
-	        return MeshHandle();
+	        return GeometryHandle();
 
 	    FlushCopyQueue();
 
