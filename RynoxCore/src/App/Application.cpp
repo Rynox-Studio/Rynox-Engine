@@ -9,6 +9,7 @@
 #include <Platform/Platform.h>
 
 #include <Platform/ModuleService.h>
+#include "Event/MouseEvent.h"
 
 namespace Rynox
 {
@@ -47,6 +48,7 @@ namespace Rynox
 		{
 			WindowDesc wndDesc;
 			wndDesc.Title = desc.Name;
+			wndDesc.Flags = WindowFlag::Resizable | WindowFlag::Minimizable | WindowFlag::Maximizable | WindowFlag::Visible;
 			wndDesc.EventCallback = RNX_BIND_EVENT_FN(RaiseEvent);
 
 			if (!m_Window || !m_Window->Initialize(wndDesc))
@@ -62,7 +64,7 @@ namespace Rynox
 		// TODO: Add logs
 		if ((m_Desc.Flags & ApplicationFlagHeadless) == 0)
 		{
-			if (!m_ModuleService.LoadModule(RYNOX_DIRECTX12_MODULE_FILENAME, "Renderer"))
+			if (!m_ModuleService.LoadModule(RYNOX_OPENGL_MODULE_FILENAME, "Renderer"))
 				return false;
 
 			auto* module = dynamic_cast<IRendererModule*>(m_ModuleService.GetModule("Renderer"));
@@ -70,7 +72,7 @@ namespace Rynox
 				return false;
 
 			RendererDesc rDesc = {};
-			rDesc.nWindow = m_Window->GetNativeHandle();
+			rDesc.nWindow = m_Window->GetNativeWindow();
 
 			m_Renderer = module->GetRenderer();
 			if (!m_Renderer || !m_Renderer->Initialize(rDesc))
@@ -111,43 +113,31 @@ namespace Rynox
 	void Application::RaiseEvent(IEvent& e)
 	{
 		EventDispatcher d(e);
-		d.Dispatch<KeyDownEvent>(RNX_BIND_EVENT_FN(OnKeyDown));
-		d.Dispatch<WindowResizeEvent>(RNX_BIND_EVENT_FN(OnWindowResize));
+		d.Dispatch<WindowResizeEvent>(RNX_BIND_EVENT_FN(OnWindowResize));;
 		d.Dispatch<WindowCloseEvent>(RNX_BIND_EVENT_FN(OnWindowClose));
-	}
 
-	void Application::RemoveLayer(ILayer* layer)
-	{
-		uint32_t i = 0;
-		for (auto& it : m_LayerStack)
+		for (auto& layer : m_LayerStack | std::views::reverse)
 		{
-			if (layer == it)
-			{
-				m_LayerStack.Remove(i);
+			if (e.Handled)
 				break;
-			}
-			i++;
+			(*it)->OnEvent(e);
 		}
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)
 	{
 		Stop();
-
 		return true;
 	}
 
 	bool Application::OnWindowResize(WindowResizeEvent& e)
 	{
 		Math::Vec2 size = e.GetSize();
-		RNX_LOG_INFO("Resize: ({}, {})", size.x, size.y);
-		m_Renderer->SetOutputSize(size.x, size.y);
+		if (m_Renderer)
+		{
+			m_Renderer->SetOutputSize(size.x, size.y);
+		}
 
-		return false;
-	}
-
-	bool Application::OnKeyDown(KeyDownEvent& e)
-	{
 		return false;
 	}
 }

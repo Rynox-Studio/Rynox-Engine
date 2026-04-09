@@ -5,49 +5,48 @@
 
 namespace Rynox
 {
-	class KeyEvent : public IEvent 
+	class IKeyEvent : public IEvent 
 	{
 	public:
-		[[nodiscard]] KeyCode GetScancode() const { return m_Key; }
+		[[nodiscard]] KeyCode GetKey() const { return m_Key; }
 
 		RNX_EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryKeyboard);
 	protected:
-		KeyEvent(KeyCode key)
+		IKeyEvent(KeyCode key)
 			: m_Key(key) {}
 
 		KeyCode m_Key;
 	};
 
-	class KeyDownEvent : public KeyEvent 
+	class KeyDownEvent : public IKeyEvent 
 	{
 	public:
 		KeyDownEvent(KeyCode key)
-			: KeyEvent(key) {}
+			: IKeyEvent(key) {}
 
 		RNX_EVENT_CLASS_TYPE(KeyDown);
 	};
 
-	class KeyUpEvent : public KeyEvent 
+	class KeyUpEvent : public IKeyEvent 
 	{
 	public:
 		KeyUpEvent(KeyCode key)
-			: KeyEvent(key) {
-		}
+			: IKeyEvent(key) {}
 
 		RNX_EVENT_CLASS_TYPE(KeyUp);
 	};
 
-	class KeyCharEvent : public KeyEvent
+	class KeyCharEvent : public IKeyEvent
 	{
 	public:
-		KeyCharEvent(KeyCode key, int codepoint)
-			: KeyEvent(key)
+		KeyCharEvent(KeyCode key, char32_t codepoint)
+			: IKeyEvent(key)
 			, m_Codepoint(codepoint) {}
 
-		[[nodiscard]] int GetCodepoint() const { return m_Codepoint; }
+		[[nodiscard]] char32_t GetCodepoint() const { return m_Codepoint; }
 
 		RNX_EVENT_CLASS_TYPE(KeyChar);
 	private:
-		int m_Codepoint;
+		char32_t m_Codepoint;
 	};
 }

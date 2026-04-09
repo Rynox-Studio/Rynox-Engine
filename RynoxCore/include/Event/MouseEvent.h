@@ -5,23 +5,23 @@
 
 namespace Rynox
 {
-	class MouseEvent : public IEvent 
+	class IMouseEvent : public IEvent 
 	{
 	public:
 		[[nodiscard]] Math::Vec2 GetPosition() const { return m_Position; }
 
 	protected:
-		MouseEvent(Math::Vec2 position)
+		IMouseEvent(Math::Vec2 position)
 			: m_Position(position) {}
 
 		Math::Vec2 m_Position;
 	};
 
-	class MouseMoveEvent : public MouseEvent
+	class MouseMoveEvent : public IMouseEvent
 	{
 	public:
 		MouseMoveEvent(Math::Vec2 position, Math::Vec2 delta)
-			: MouseEvent(position)
+			: IMouseEvent(position)
 			, m_Delta(delta) {}
 
 		[[nodiscard]] Math::Vec2 GetDelta() const { return m_Delta; }
@@ -32,11 +32,11 @@ namespace Rynox
 		Math::Vec2 m_Delta;
 	};
 
-	class MouseScrollEvent : public MouseEvent
+	class MouseScrollEvent : public IMouseEvent
 	{
 	public:
 		MouseScrollEvent(Math::Vec2 position, Math::Vec2 scroll)
-			: MouseEvent(position)
+			: IMouseEvent(position)
 			, m_Scroll(scroll) {}
 
 		[[nodiscard]] Math::Vec2 GetScroll() const { return m_Scroll; }
@@ -47,34 +47,34 @@ namespace Rynox
 		Math::Vec2 m_Scroll;
 	};
 
-	class MouseButtonEvent : public MouseEvent
+	class IMouseButtonEvent : public IMouseEvent
 	{
 	public:
 		[[nodiscard]] MouseButton GetButton() const { return m_Button; }
 
 	protected:
-		MouseButtonEvent(Math::Vec2 position, MouseButton button)
-			: MouseEvent(position)
+		IMouseButtonEvent(Math::Vec2 position, MouseButton button)
+			: IMouseEvent(position)
 			, m_Button(button) {}
 
 		MouseButton m_Button;
 	};
 
-	class MouseButtonDownEvent : public MouseButtonEvent
+	class MouseButtonDownEvent : public IMouseButtonEvent
 	{
 	public:
 		MouseButtonDownEvent(Math::Vec2 position, MouseButton button)
-			: MouseButtonEvent(position, button) {}
+			: IMouseButtonEvent(position, button) {}
 
 		RNX_EVENT_CLASS_TYPE(MouseButtonDown);
 		RNX_EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouseButton);
 	};
 
-	class MouseButtonUpEvent : public MouseButtonEvent
+	class MouseButtonUpEvent : public IMouseButtonEvent
 	{
 	public:
 		MouseButtonUpEvent(Math::Vec2 position, MouseButton button)
-			: MouseButtonEvent(position, button) {}
+			: IMouseButtonEvent(position, button) {}
 
 		RNX_EVENT_CLASS_TYPE(MouseButtonUp);
 		RNX_EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouseButton);

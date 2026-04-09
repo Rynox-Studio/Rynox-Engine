@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+// Mouse buttons based on USB HID Usage Tables (https://www.usb.org/sites/default/files/documents/hut1_12v2.pdf)
+// This provides a consistent set across platforms, abstracting away platform-specific differences.
+
 namespace Rynox
 {
 	using MouseButton = uint32_t;
@@ -11,17 +14,19 @@ namespace Rynox
 		{
 			None = 0,
 
-			LeftButton = 1,
-			RightButton = 2,
-			MiddleButton = 3,
+			Button1,
+			Button2,
+			Button3,
+			Button4,
+			Button5,
 
-			Button4 = 4,
-			Button5 = 5,
-			Button6 = 6,
-			Button7 = 7,
-			Button8 = 8,
-
-			Count
+			Count,
+			
+			// Aliases
+			
+			LeftButton = Button1,
+			RightButton = Button2,
+			MiddleButton = Button3,
 		};
 	}
 }

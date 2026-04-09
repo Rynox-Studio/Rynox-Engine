@@ -108,29 +108,6 @@ namespace Rynox::Platform
 #endif
 	}
 
-	void SetCursorVisible(bool visible)
-	{
-#ifdef RNX_WINDOWS
-		::ShowCursor(visible ? TRUE : FALSE);
-#endif
-	}
-
-	void SetCaptureCursor(bool capture)
-	{
-#ifdef RNX_WINDOWS
-		if (capture)
-		{
-			RECT rect;
-			::GetClipCursor(&rect);
-			::ClipCursor(&rect);
-		}
-		else
-		{
-			::ClipCursor(nullptr);
-		}
-#endif
-	}
-
 	IWindow* CreateWindow()
 	{
 		IWindow* window = nullptr;

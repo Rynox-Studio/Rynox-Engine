@@ -59,9 +59,11 @@ namespace Rynox
 		EventDispatcher(IEvent& e) : m_Event(e) {}
 
 		template<typename T>
-		inline bool Dispatch(EventFn<T> func) {
-			if (m_Event.GetEventType() == T::GetStaticType() && !m_Event.Handled) {
-				m_Event.Handled = func(*(T*)&m_Event);
+		inline bool Dispatch(EventFn<T> func)
+		{
+			if (m_Event.GetEventType() == T::GetStaticType())
+			{
+				m_Event.Handled |= func(static_cast<T&>(m_Event));
 				return true;
 			}
 			return false;
@@ -70,6 +72,6 @@ namespace Rynox
 	private:
 		IEvent& m_Event;
 	};
+}
 
 #define RNX_BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
-}

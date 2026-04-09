@@ -46,9 +46,8 @@ namespace Rynox
 
 		const ApplicationDesc& GetDesc() const { return m_Desc; }
 
-		void InsertLayer(uint32_t index, ILayer* layer) { m_LayerStack.Insert(index, layer); }
-		void PushLayer(ILayer* layer) { m_LayerStack.PushBack(layer); }
-		void RemoveLayer(ILayer* layer);
+		void PushLayer(std::unique_ptr<ILayer> layer) { m_LayerStack.PushLayer(std::move(layer)); }
+		void RemoveLayer(ILayer* layer) { m_LayerStack.RemoveLayer(layer); }
 
 		IWindow* Window() { return m_Window; }
 		IRenderer* Renderer() { return m_Renderer; }
@@ -56,7 +55,6 @@ namespace Rynox
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
-		bool OnKeyDown(KeyDownEvent& e);
 
 	private:
 		ApplicationDesc m_Desc;

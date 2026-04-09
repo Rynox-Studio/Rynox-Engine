@@ -1,10 +1,11 @@
 #pragma once
 
+#include "IWindow.h"
+
 #include <cstdint>
 #include <string>
 
 #include <Math/Vec2.h>
-#include "IWindow.h"
 
 namespace Rynox::Platform
 {
@@ -30,8 +31,6 @@ namespace Rynox::Platform
 
 	void SetCursorPosition(Math::Vec2 position);
 	Math::Vec2 GetCursorPosition();
-	void SetCursorVisible(bool visible);
-	void SetCaptureCursor(bool capture);
 
 	//
 	// Window
