@@ -2,16 +2,14 @@
 
 #include <string>
 
-#include <App/LayerStack.h>
+#include "App/LayerStack.h"
 
-#include <Platform/IWindow.h>
-#include <Platform/ModuleService.h>
+#include "Platform/IWindow.h"
+#include "Platform/ModuleService.h"
 
-#include <Rendering/IRenderer.h>
-
-#include <Event/IEvent.h>
-#include <Event/WindowEvent.h>
-#include <Event/KeyEvent.h>
+#include "Event/IEvent.h"
+#include "Event/WindowEvent.h"
+#include "Event/KeyEvent.h"
 
 namespace Rynox
 {

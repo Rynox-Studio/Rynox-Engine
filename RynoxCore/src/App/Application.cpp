@@ -1,15 +1,11 @@
 #include "App/Application.h"
 
-#include <chrono>
+#include "Platform/Platform.h"
+#include "Platform/ModuleService.h"
+
 #include <Common/Assert.h>
-
-#include <Rendering/IRendererModule.h>
-#include <Rendering/IRenderer.h>
-
-#include <Platform/Platform.h>
-
-#include <Platform/ModuleService.h>
-#include "Event/MouseEvent.h"
+#include <chrono>
+#include <ranges>
 
 namespace Rynox
 {
@@ -120,7 +116,7 @@ namespace Rynox
 		{
 			if (e.Handled)
 				break;
-			(*it)->OnEvent(e);
+			layer->OnEvent(e);
 		}
 	}
 
