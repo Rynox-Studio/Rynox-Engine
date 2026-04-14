@@ -5,39 +5,15 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(DEPENDENCIES_OWN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Own)
-set(DEPENDENCIES_THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Third_Party)
-
 if(MSVC)
   add_compile_options(/MP)
 endif()
 
-# Third_Party
-add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glad)
-add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/entt)
+# Dependencies
+add_subdirectory(External)
+add_subdirectory(Internal)
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_NO_EXPORT ON CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_OPT_BUILD_PACKAGES OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
-
-set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "" FORCE)   # FBX
-set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)   # OBJ
-set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)  # glTF
-
-add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/assimp EXCLUDE_FROM_ALL)
-add_subdirectory(${DEPENDENCIES_THIRD_PARTY_DIR}/glm EXCLUDE_FROM_ALL)
-
-# Own
-add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxCommon)
-add_subdirectory(${DEPENDENCIES_OWN_DIR}/RynoxMath)
-
-# Root
-add_subdirectory(RynoxRenderer)
+# Projects
 add_subdirectory(RynoxCore)
 add_subdirectory(RynoxEditor)
+#add_subdirectory(RynoxRHI)

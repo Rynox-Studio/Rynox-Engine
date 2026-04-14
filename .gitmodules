@@ -1,9 +1,6 @@
 [submodule "Dependencies/Third_Party/assimp"]
-	path = Dependencies/Third_Party/assimp
+	path = External/assimp
 	url = https://github.com/assimp/assimp.git
-[submodule "Dependencies/Third_Party/glm"]
-	path = Dependencies/Third_Party/glm
-	url = https://github.com/g-truc/glm.git
 [submodule "Dependencies/Third_Party/entt"]
-	path = Dependencies/Third_Party/entt
+	path = External/entt
 	url = https://github.com/skypjack/entt.git

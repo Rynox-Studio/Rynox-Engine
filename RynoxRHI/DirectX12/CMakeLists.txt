@@ -11,35 +11,32 @@ file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS
 )
 
 add_library(${PROJECT_NAME}
-    SHARED
-        ${SOURCE_FILES}
-        ${HEADER_FILES}
+SHARED
+    ${SOURCE_FILES}
+    ${HEADER_FILES}
 )
 
 source_group(
-    TREE ${CMAKE_CURRENT_SOURCE_DIR}
-    FILES
-        ${SOURCE_FILES}
-        ${HEADER_FILES}
+TREE ${CMAKE_CURRENT_SOURCE_DIR}
+FILES ${SOURCE_FILES} ${HEADER_FILES}
 )
 
 target_include_directories(${PROJECT_NAME}
-    PUBLIC
-        ${CMAKE_SOURCE_DIR}/RynoxCore/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+PUBLIC
+    ${CMAKE_SOURCE_DIR}/RynoxCore/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC
-        RynoxCommon
-        RynoxMath
+PUBLIC
+    RynoxCommon
+    RynoxMath
 )
 
 set_target_properties(${PROJECT_NAME}
 PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/${PROJECT_NAME}"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/${PROJECT_NAME}"
 
     OUTPUT_NAME "${PROJECT_NAME}-v${PROJECT_VERSION}-$<CONFIG>-$<PLATFORM_ID>"
 )
